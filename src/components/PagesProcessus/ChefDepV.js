@@ -5,10 +5,10 @@ import {
   Select, MenuItem, FormControl, InputLabel, Chip,
   Typography, Box
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
-import api from '../services/api';
+import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
+import api from '../../services/api';
 
-const TicketsPage = () => {
+const ChefDepV = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -19,7 +19,7 @@ const TicketsPage = () => {
 
   const loadTickets = async () => {
     try {
-      const response = await api.getByUserName("sss");
+      const response = await api.getAllTicketsDepV(1);
       console.log("date :",response.data)
       setTickets(response.data);
     } catch (error) {
@@ -69,10 +69,19 @@ const TicketsPage = () => {
     }
   };
 
+      const handleValidate = async (ticketId) => {
+        try {
+          await api.updateTicketDepV(ticketId);
+          loadTickets(); // Recharger la liste
+        } catch (error) {
+          console.error("Error updating ticket status:", error);
+        }
+      };
+
   return (
-    <Box sx={{ p: 3 ,width: 'calc(130%)'}}>
+    <Box sx={{ p: 3 ,width: 'calc(120%)'}}>
       <Typography variant="h4" gutterBottom>
-        Gestion des Tickets
+      Chef Dep  Validation
       </Typography>
       
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
@@ -160,25 +169,20 @@ const TicketsPage = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button 
-                        variant="outlined"
+                        <Button
+                        variant="contained"
                         size="small"
-                        startIcon={<Edit />}
-                        onClick={() => window.location.href = `/tickets/${ticket.id}/edit`}
-                      >
-                        Modifier
-                      </Button>
-                      <Button 
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                        startIcon={<Delete />}
-                        onClick={() => handleDelete(ticket.id)}
-                      >
-                        Supprimer
-                      </Button>
-                    </Box>
+                        color="success"
+                        startIcon={<CheckCircle />}
+                        onClick={() => handleValidate(ticket.id)}
+                        sx={{ 
+                            backgroundColor: '#4caf50',
+                            '&:hover': { backgroundColor: '#388e3c' },
+                            transition: 'all 0.3s ease'
+                        }}
+                        >
+                        Valider
+                        </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -196,4 +200,4 @@ const TicketsPage = () => {
   );
 };
 
-export default TicketsPage;
+export default ChefDepV;

@@ -3,23 +3,40 @@ import {
   Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, Button, TextField,
   Select, MenuItem, FormControl, InputLabel, Chip,
-  Typography, Box
+  Typography, Box,IconButton,Tooltip,
 } from '@mui/material';
-import { Add, Edit, Delete } from '@mui/icons-material';
-import api from '../services/api';
+import {
+    Dashboard as DashboardIcon,
+    ListAlt as TicketsIcon,
+    People as UsersIcon,
+    Settings as SettingsIcon,
+    Menu as MenuIcon,
+    Notifications as NotificationsIcon,
+    Refresh as RefreshIcon,
+    FilterAlt as FilterIcon,
+    Assignment as AssignmentIcon,
+    CheckCircle as ResolveIcon,
+    Close as CloseIcon,
+    Visibility as ViewIcon // Nouvel import
+  } from '@mui/icons-material';
+import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
+import api from '../../services/api';
 
-const TicketsPage = () => {
+const ChefDepSI = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
+  
   useEffect(() => {
     loadTickets();
   }, []);
 
   const loadTickets = async () => {
     try {
-      const response = await api.getByUserName("sss");
+      const response = await api.getAllTicketsAdmin();
       console.log("date :",response.data)
       setTickets(response.data);
     } catch (error) {
@@ -69,10 +86,33 @@ const TicketsPage = () => {
     }
   };
 
+  // Dans votre composant
+const shouldShowValidateButton = (ticket) => {
+    // Exemple basique - adapter selon vos règles métier
+    return ticket.status === 'CREATED'; 
+  };
+  
+
+
+    const handleValidate = async (ticketId) => {
+      try {
+        await api.updateTicketDepSI(ticketId);
+        loadTickets(); // Recharger la liste
+      } catch (error) {
+        console.error("Error updating ticket status:", error);
+      }
+    };
+
+        // Nouvelle fonction pour ouvrir les détails
+        const handleViewDetails = (ticket) => {
+            setSelectedTicket(ticket);
+            setOpenDialog(true);
+          };
+
   return (
-    <Box sx={{ p: 3 ,width: 'calc(130%)'}}>
+    <Box sx={{ p: 3 ,width: 'calc(120%)'}}>
       <Typography variant="h4" gutterBottom>
-        Gestion des Tickets
+        Chef Dep SI Validation
       </Typography>
       
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
@@ -160,26 +200,14 @@ const TicketsPage = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button 
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Edit />}
-                        onClick={() => window.location.href = `/tickets/${ticket.id}/edit`}
-                      >
-                        Modifier
-                      </Button>
-                      <Button 
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                        startIcon={<Delete />}
-                        onClick={() => handleDelete(ticket.id)}
-                      >
-                        Supprimer
-                      </Button>
-                    </Box>
-                  </TableCell>
+                   
+                <Tooltip title="Voir détails">
+                  <IconButton onClick={() => handleViewDetails(ticket)}>
+                    <ViewIcon color="primary" />
+                  </IconButton>
+                </Tooltip>
+                    
+                    </TableCell>
                 </TableRow>
               ))
             ) : (
@@ -196,4 +224,4 @@ const TicketsPage = () => {
   );
 };
 
-export default TicketsPage;
+export default ChefDepSI;

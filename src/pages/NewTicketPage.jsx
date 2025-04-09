@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TextField, Button, Select, MenuItem, 
-  FormControl, InputLabel, Container, Typography 
+import {
+  TextField, Button, Select, MenuItem,
+  FormControl, InputLabel, Container, Typography
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -9,8 +9,7 @@ import api from '../services/api';
 const TicketFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  // Données provenant de votre JSON
+
   const data = {
     departements: [
       { id: 1, nom: 'DPF' },
@@ -39,11 +38,12 @@ const TicketFormPage = () => {
   };
 
   const [ticket, setTicket] = useState({
+    typeDemande: '',
     serialNumber: '',
     equipmentType: '',
     brand: '',
     problemDescription: '',
-    status: 'OPEN',
+    status: 'SERVICE_VALIDATED',
     priority: 'MEDIUM',
     bureau: { id: '' },
     department: { id: '' },
@@ -63,18 +63,14 @@ const TicketFormPage = () => {
         try {
           const response = await api.getTicket(id);
           const ticketData = response.data;
-          
-          // Filtrer d'abord les services correspondants au département
+
           const servicesForDept = data.services.filter(s => s.departement_id === ticketData.department.id);
           setFilteredServices(servicesForDept);
-          
-          // Ensuite filtrer les bureaux correspondants au service
+
           const bureausForService = data.bureaux.filter(b => b.service_id === ticketData.service.id);
           setFilteredBureaus(bureausForService);
-          
-          // Enfin, mettre à jour le ticket avec toutes les données
+
           setTicket(ticketData);
-          
         } catch (error) {
           console.error("Error fetching ticket:", error);
         }
@@ -82,10 +78,9 @@ const TicketFormPage = () => {
       fetchTicket();
     }
   }, [id]);
-  
-  // Modifiez les autres useEffect pour ne pas réinitialiser lors du chargement initial
+
   useEffect(() => {
-    if (ticket.department.id && !id) { // Ne pas réinitialiser si on est en mode édition
+    if (ticket.department.id && !id) {
       const servicesForDept = data.services.filter(s => s.departement_id === ticket.department.id);
       setFilteredServices(servicesForDept);
       setTicket(prev => ({
@@ -96,9 +91,9 @@ const TicketFormPage = () => {
       setFilteredBureaus([]);
     }
   }, [ticket.department.id]);
-  
+
   useEffect(() => {
-    if (ticket.service.id && !id) { // Ne pas réinitialiser si on est en mode édition
+    if (ticket.service.id && !id) {
       const bureausForService = data.bureaux.filter(b => b.service_id === ticket.service.id);
       setFilteredBureaus(bureausForService);
       setTicket(prev => ({
@@ -110,7 +105,7 @@ const TicketFormPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'departmentId') {
       setTicket({
         ...ticket,
@@ -153,9 +148,23 @@ const TicketFormPage = () => {
       <Typography variant="h4" gutterBottom>
         {id ? 'Modifier le Ticket' : 'Créer un Nouveau Ticket'}
       </Typography>
-      
+
       <form onSubmit={handleSubmit}>
-        {/* Sélection du département */}
+        {/* Type de demande */}
+        <FormControl fullWidth margin="normal" required>
+          <InputLabel>Type de demande</InputLabel>
+          <Select
+            name="typeDemande"
+            value={ticket.typeDemande}
+            onChange={handleChange}
+            label="Type de demande"
+          >
+            <MenuItem value="maintenance">Demande de maintenance</MenuItem>
+            <MenuItem value="intervention">Demande d'intervention</MenuItem>
+          </Select>
+        </FormControl>
+
+        {/* Département */}
         <FormControl fullWidth margin="normal" required>
           <InputLabel>Département</InputLabel>
           <Select
@@ -171,7 +180,7 @@ const TicketFormPage = () => {
           </Select>
         </FormControl>
 
-        {/* Sélection du service (dépend du département) */}
+        {/* Service */}
         <FormControl fullWidth margin="normal" required>
           <InputLabel>Service</InputLabel>
           <Select
@@ -188,7 +197,7 @@ const TicketFormPage = () => {
           </Select>
         </FormControl>
 
-        {/* Sélection du bureau (dépend du service) */}
+        {/* Bureau */}
         <FormControl fullWidth margin="normal" required>
           <InputLabel>Bureau</InputLabel>
           <Select
@@ -204,48 +213,51 @@ const TicketFormPage = () => {
             ))}
           </Select>
         </FormControl>
-        
-        {/* Autres champs du formulaire... */}
-        <TextField
-          fullWidth
-          label="Numéro de série"
-          name="serialNumber"
-          value={ticket.serialNumber}
-          onChange={handleChange}
-          margin="normal"
-          required
-        />
-        
-        {/* Sélection du type d'équipement */}
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel>Type d'équipement</InputLabel>
-          <Select
-            name="equipmentType"
-            value={ticket.equipmentType}
-            onChange={handleChange}
-            label="Type d'équipement"
-          >
-            {equipmentTypes.map(type => (
-              <MenuItem key={type} value={type}>{type}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        
-        {/* Sélection de la marque */}
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel>Marque</InputLabel>
-          <Select
-            name="brand"
-            value={ticket.brand}
-            onChange={handleChange}
-            label="Marque"
-          >
-            {brands.map(brand => (
-              <MenuItem key={brand} value={brand}>{brand}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        
+
+        {/* Champs conditionnels (affichés seulement pour "maintenance") */}
+        {ticket.typeDemande === 'maintenance' && (
+          <>
+            <TextField
+              fullWidth
+              label="Numéro de série"
+              name="serialNumber"
+              value={ticket.serialNumber}
+              onChange={handleChange}
+              margin="normal"
+              required
+            />
+
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel>Type d'équipement</InputLabel>
+              <Select
+                name="equipmentType"
+                value={ticket.equipmentType}
+                onChange={handleChange}
+                label="Type d'équipement"
+              >
+                {equipmentTypes.map(type => (
+                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel>Marque</InputLabel>
+              <Select
+                name="brand"
+                value={ticket.brand}
+                onChange={handleChange}
+                label="Marque"
+              >
+                {brands.map(brand => (
+                  <MenuItem key={brand} value={brand}>{brand}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </>
+        )}
+
+        {/* Description */}
         <TextField
           fullWidth
           multiline
@@ -257,21 +269,8 @@ const TicketFormPage = () => {
           margin="normal"
           required
         />
-        
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Statut</InputLabel>
-          <Select
-            name="status"
-            value={ticket.status}
-            onChange={handleChange}
-            label="Statut"
-          >
-            <MenuItem value="OPEN">Ouvert</MenuItem>
-            <MenuItem value="IN_PROGRESS">En cours</MenuItem>
-            <MenuItem value="RESOLVED">Résolu</MenuItem>
-          </Select>
-        </FormControl>
-        
+
+        {/* Priorité */}
         <FormControl fullWidth margin="normal">
           <InputLabel>Priorité</InputLabel>
           <Select
@@ -280,15 +279,15 @@ const TicketFormPage = () => {
             onChange={handleChange}
             label="Priorité"
           >
-            <MenuItem value="LOW">Basse</MenuItem>
-            <MenuItem value="MEDIUM">Moyenne</MenuItem>
-            <MenuItem value="HIGH">Haute</MenuItem>
+            <MenuItem value="BASSE">Basse</MenuItem>
+            <MenuItem value="MOYENNE">Moyenne</MenuItem>
+            <MenuItem value="HAUTE">Haute</MenuItem>
           </Select>
         </FormControl>
-        
-        <Button 
-          type="submit" 
-          variant="contained" 
+
+        <Button
+          type="submit"
+          variant="contained"
           color="primary"
           style={{ marginTop: 20 }}
         >
