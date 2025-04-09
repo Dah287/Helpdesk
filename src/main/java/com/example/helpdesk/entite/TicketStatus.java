@@ -1,9 +1,10 @@
 package com.example.helpdesk.entite;
 
 public enum TicketStatus {
-    OPEN,
-    IN_PROGRESS,
-    RESOLVED,
-    CLOSED,
-    REOPENED
+    SERVICE_VALIDATED, // Validé par le chef de service
+    DEPT_VALIDATED,// Validé par le chef de département
+    SI_DEPT_VALIDATED, // Validé par le chef de département
+    SI_SERVICE,
+    EN_COURS,
+    RESOLU
 }

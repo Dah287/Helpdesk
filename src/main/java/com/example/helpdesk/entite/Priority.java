@@ -1,8 +1,7 @@
 package com.example.helpdesk.entite;
 
 public enum Priority {
-    LOW,
-    MEDIUM,
-    HIGH,
-    CRITICAL
+    BASSE,
+    MOYENNE,
+    HAUTE
 }

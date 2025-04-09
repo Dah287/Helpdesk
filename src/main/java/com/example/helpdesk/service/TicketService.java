@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 @Service
@@ -20,6 +21,19 @@ public class TicketService {
     public Ticket createTicket(Ticket ticket) {
         // Vous pouvez ajouter une logique métier ici avant la sauvegarde
         return ticketRepository.save(ticket);
+    }
+
+    public Ticket updateTicketStatus(Long id, Ticket newStatus) throws Exception {
+        Optional<Ticket> optionalTicket = ticketRepository.findById(id);
+
+        if (optionalTicket.isPresent()) {
+            Ticket ticket = optionalTicket.get();
+
+            ticket.setStatus(newStatus.getStatus());
+            return ticketRepository.save(ticket);
+        } else {
+            throw new Exception("Ticket not found");
+        }
     }
 
     // Récupérer tous les tickets
@@ -79,4 +93,96 @@ public class TicketService {
         ticket.setStatus(newStatus);
         return ticketRepository.save(ticket);
     }
+    @Autowired
+    private UserService userService;
+
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    // Récupérer les tickets assignés à un username
+    public List<Ticket> getTicketsAssignedToUser(String username) {
+        User user = userService.getUserByUsername(username);
+        return ticketRepository.findByCreatedBy(user);
+    }
+
+    //Récupère les tickets pour"chef de service SI " un département et statut donnés
+    public List<Ticket> getTicketsByDepartmentAndStatus(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
+        return ticketRepository.findByDepartmentAndStatus(department, TicketStatus.SI_SERVICE);
+    }
+
+    //Récupère les tickets pour"chef de service validation " un département et statut donnés
+    public List<Ticket> getTicketsByDepartmentAndStatus_SV(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
+        return ticketRepository.findByDepartmentAndStatus(department, TicketStatus.SERVICE_VALIDATED);
+    }
+
+    //Récupère les tickets pour"chef de service validation " un département et statut donnés
+    public List<Ticket> getTicketsByDepartmentAndStatus_DV(Long departmentId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
+        return ticketRepository.findByDepartmentAndStatus(department, TicketStatus.DEPT_VALIDATED);
+    }
+
+    //Récupère les tickets pour"chef de service validation " un département et statut donnés
+    public List<Ticket> getTicketsByDepartmentAndStatus_SI_DV() {
+
+        return ticketRepository.findByStatus(TicketStatus.SI_DEPT_VALIDATED);
+    }
+//récupérer tous les tickets ayant l'un des statuts SI_SERVICE, EN_COURS ou RESOLU
+    public List<Ticket> getTicketsByStatus() {
+        List<TicketStatus> desiredStatuses = Arrays.asList(
+                TicketStatus.SI_SERVICE,
+                TicketStatus.EN_COURS,
+                TicketStatus.RESOLU
+        );
+
+        return ticketRepository.findByStatusIn(desiredStatuses);
+    }
+
+
+
+        //recupere par role
+    // === Méthodes par rôle ===
+//    public List<Ticket> getTicketsForCurrentUser() {
+//       // String username = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User user = userRepository.findByUsername(username);
+//        return ticketRepository.findByCreatedBy(user);
+//    }
+//
+//    public List<Ticket> getTicketsForServiceChief() {
+//        // Supposons que l'utilisateur a un département associé
+//        User currentUser = getCurrentUser();
+//        return ticketRepository.findByDepartmentAndStatus(
+//                currentUser.getDepartment(),
+//                Status.CREATED
+//        );
+//    }
+//
+//    public List<Ticket> getTicketsForDeptChief() {
+//        User currentUser = getCurrentUser();
+//        return ticketRepository.findByDepartmentAndStatus(
+//                currentUser.getDepartment(),
+//                Status.SERVICE_VALIDATED
+//        );
+//    }
+//
+//    public List<Ticket> getTicketsForSIAdmin() {
+//        return ticketRepository.findByStatusIn(
+//                Arrays.asList(Status.DEPT_VALIDATED, Status.SI_ASSIGNED)
+//        );
+//    }
+//
+//    // Méthode utilitaire pour récupérer l'utilisateur connecté
+//    private User getCurrentUser() {
+//        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+//        return userRepository.findByUsername(username);
+//    }
+
+
+
+
 }

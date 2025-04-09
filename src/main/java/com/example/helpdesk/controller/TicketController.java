@@ -1,6 +1,7 @@
 package com.example.helpdesk.controller;
 
 import com.example.helpdesk.entite.*;
+import com.example.helpdesk.repository.TicketRepository;
 import com.example.helpdesk.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,8 @@ public class TicketController {
 
     @Autowired
     private TicketService ticketService;
-
+    @Autowired
+    private TicketRepository ticketRepository;
     // Créer un nouveau ticket
     @PostMapping
     public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
@@ -26,6 +28,16 @@ public class TicketController {
     @GetMapping
     public ResponseEntity<List<Ticket>> getAllTickets() {
         return ResponseEntity.ok(ticketService.getAllTickets());
+    }
+
+    @PutMapping("/updateTicketStatus/{id}")
+    public ResponseEntity<?> updateTicketStatus(@PathVariable Long id, @RequestBody Ticket ticketRequest) {
+        try {
+            Ticket updatedTicket = ticketService.updateTicketStatus(id, ticketRequest);
+            return ResponseEntity.ok(updatedTicket);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body("Ticket not found");
+        }
     }
 
     // Récupérer un ticket par ID
@@ -47,6 +59,34 @@ public class TicketController {
         }
     }
 
+    // processus de validation
+    @PutMapping("/{id}/validate-service")
+    public ResponseEntity<Ticket> validateByServiceChief(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.SERVICE_VALIDATED);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    @PutMapping("/{id}/validate-dept")
+    public ResponseEntity<Ticket> validateByDeptChief(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.DEPT_VALIDATED);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    @PutMapping("/{id}/assign-si")
+    public ResponseEntity<Ticket> assignToSI(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.SI_SERVICE);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    @PutMapping("/{id}/resolve")
+    public ResponseEntity<Ticket> resolveBySIAdmin(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.RESOLU);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
     // Supprimer un ticket
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
@@ -79,5 +119,72 @@ public class TicketController {
         } catch (RuntimeException ex) {
             return ResponseEntity.notFound().build();
         }
+
+
+
+        // processus de validation
+
     }
+
+
+    // Récupérer les tickets assignés à un username
+    @GetMapping("/assigned-to/{username}")
+    public List<Ticket> getTicketsAssignedToUser(@PathVariable String username) {
+        return ticketService.getTicketsAssignedToUser(username);
+    }
+//Récupère les tickets pour un département et statut donnés
+    @GetMapping("/tickets-chef-service/{departmentId}")
+    public List<Ticket> getTicketsByDeptAndStatus(
+            @PathVariable Long departmentId) {
+        return ticketService.getTicketsByDepartmentAndStatus(departmentId);
+    }
+    //Récupère les tickets pour un département et statut donnés
+    @GetMapping("/tickets-chef-service-validation/{departmentId}")
+    public List<Ticket> getTicketsByDeptAndStatus_SV(
+            @PathVariable Long departmentId) {
+        return ticketService.getTicketsByDepartmentAndStatus_SV(departmentId);
+    }
+    //Récupère les tickets pour un département et statut donnés
+    @GetMapping("/tickets-chef-Dep-validation/{departmentId}")
+    public List<Ticket> getTicketsByDeptAndStatus_DV(
+            @PathVariable Long departmentId) {
+        return ticketService.getTicketsByDepartmentAndStatus_DV(departmentId);
+    }
+    //Récupère les tickets pour un département et statut donnés
+    @GetMapping("/tickets-chef-Dep-SI")
+    public List<Ticket> getTicketsByDeptAndStatus_SI_DV() {
+        return ticketService.getTicketsByDepartmentAndStatus_SI_DV();
+    }
+
+
+    // validation service
+    @PutMapping("/{id}/v-service")
+    public ResponseEntity<Ticket> validationService(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.DEPT_VALIDATED);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    // validation Dep
+    @PutMapping("/{id}/v-dep")
+    public ResponseEntity<Ticket> validationDep(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.SI_SERVICE);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    // validation Dep
+    @PutMapping("/{id}/v-si-dep")
+    public ResponseEntity<Ticket> validationDepSI(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.SI_SERVICE);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    // Endpoint pour récupérer les tickets avec statuts SI_SERVICE, EN_COURS, RESOLU
+    @GetMapping("/by-status")
+    public List<Ticket> getTicketsByStatus() {
+        return ticketService.getTicketsByStatus();
+    }
+
 }

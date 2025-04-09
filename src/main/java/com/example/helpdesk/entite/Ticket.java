@@ -49,6 +49,10 @@ public class Ticket {
     @Column(nullable = false)
     private Priority priority;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TypeDemande typeDemande;
+
     @ManyToOne
     @JoinColumn(name = "bureau_id", nullable = false)
     private Bureau bureau;
@@ -126,6 +130,8 @@ public class Ticket {
         this.status = status;
     }
 
+
+
     public Priority getPriority() {
         return priority;
     }
@@ -133,6 +139,16 @@ public class Ticket {
     public void setPriority(Priority priority) {
         this.priority = priority;
     }
+
+    //
+    public TypeDemande getTypeDemande() {
+        return typeDemande;
+    }
+
+    public void setTypeDemande(TypeDemande typeDemande) {
+        this.typeDemande = typeDemande;
+    }
+    //
     public Bureau getBureau() {
         return bureau;
     }
