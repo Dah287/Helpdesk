@@ -5,7 +5,7 @@ import {
   ListItemText, Grid, Card, CardContent, TextField,
   Button, Select, MenuItem, FormControl, InputLabel,
   TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, Chip, IconButton, Tooltip, Paper,
+  TableBody, Chip, IconButton, Tooltip, Paper,Menu,
   Dialog, DialogTitle, DialogContent, DialogActions // Nouveaux imports
 } from '@mui/material';
 import {
@@ -25,6 +25,9 @@ import {
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
+import LogoutIcon from '@mui/icons-material/Logout';
+import useAutoLogout from '../pages/useAutoLogout';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [tickets, setTickets] = useState([]);
@@ -113,6 +116,38 @@ const AdminDashboard = () => {
     const matchesFilter = filter === 'all' || ticket.status === filter;
     return matchesSearch && matchesFilter;
   });
+  const userData = localStorage.getItem('user');
+  const bureau_id = localStorage.getItem('bureau_id');
+  const service_id = localStorage.getItem('service_id');
+  const department_id = localStorage.getItem('department_id');
+  
+  const parsedUser = userData ? JSON.parse(userData) : null;
+  const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
+  const parsedservice_id = service_id ? JSON.parse(service_id) : null;
+  const parseddepartment_id = department_id ? JSON.parse(department_id) : null;
+  
+  const displayUsername = parsedUser 
+    ? parsedUser.username.charAt(0).toUpperCase()
+    : 'A';
+
+
+  useAutoLogout();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  
+  const navigate = useNavigate();
+    const handleAvatarClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+    
+    const handleClosee = () => {
+      setAnchorEl(null);
+    };
+    
+    const handleLogout = () => {
+      localStorage.clear(); // ou uniquement les clés que tu veux
+      navigate('/');
+    };
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -130,7 +165,30 @@ const AdminDashboard = () => {
           <IconButton color="inherit">
             <NotificationsIcon />
           </IconButton>
-          <Avatar sx={{ marginLeft: 2 }}>A</Avatar>
+          <IconButton onClick={handleAvatarClick} color="inherit">
+  <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
+</IconButton>
+<Menu
+  anchorEl={anchorEl}
+  open={open}
+  onClose={handleClosee}
+  anchorOrigin={{
+    vertical: 'bottom',
+    horizontal: 'right',
+  }}
+  transformOrigin={{
+    vertical: 'top',
+    horizontal: 'right',
+  }}
+>
+  <MenuItem disabled>
+    <Typography variant="body1">{parsedUser?.username} {parsedUser?.prenom}</Typography>
+  </MenuItem>
+  <MenuItem onClick={handleLogout}>
+    <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+    Déconnexion
+  </MenuItem>
+</Menu>
         </Toolbar>
       </AppBar>
       

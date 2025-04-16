@@ -13,8 +13,8 @@ const api = {
   deleteTicket: (id) => axios.delete(`${API_URL}/${id}`),
   updateTicketStatus: (id, newStatus) => axios.put(`${API_URL}/updateTicketStatus/${id}`, { status: newStatus }),
 //
-getAllTicketsService: (id) => axios.get(`${API_URL}/tickets-chef-service-validation/${id}`),
-getAllTicketsDepV: (id) => axios.get(`${API_URL}/tickets-chef-Dep-validation/${id}`),
+getAllTicketsService: (id,userId) => axios.get(`${API_URL}/tickets-chef-service-validation/${id}/${userId}`),
+getAllTicketsDepV: (id,userId) => axios.get(`${API_URL}/tickets-chef-Dep-validation/${id}/${userId}`),
 getAllTicketsDepSI: () => axios.get(`${API_URL}/tickets-chef-Dep-SI`),
 
 

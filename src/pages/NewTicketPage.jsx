@@ -10,50 +10,50 @@ const TicketFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const data = {
-    departements: [
-      { id: 1, nom: 'DPF' },
-      { id: 2, nom: 'DRH' }
-    ],
-    services: [
-      { id: 1, nom: 'SP', departement_id: 1 },
-      { id: 2, nom: 'SI', departement_id: 1 },
-      { id: 3, nom: 'SF', departement_id: 1 },
-      { id: 4, nom: 'S.G.P', departement_id: 2 },
-      { id: 5, nom: 'S.FC.C', departement_id: 2 }
-    ],
-    bureaux: [
-      { id: 1, nom: 'B.P.B', service_id: 1 },
-      { id: 2, nom: 'B.S.E', service_id: 1 },
-      { id: 3, nom: 'B.E.I', service_id: 2 },
-      { id: 4, nom: 'B.E.M', service_id: 2 },
-      { id: 5, nom: 'B.C.P', service_id: 3 },
-      { id: 6, nom: 'B.C.GA', service_id: 3 },
-      { id: 7, nom: 'B.F', service_id: 3 },
-      { id: 8, nom: 'B.P.P', service_id: 4 },
-      { id: 9, nom: 'B.AS', service_id: 4 },
-      { id: 10, nom: 'G.C', service_id: 5 },
-      { id: 11, nom: 'F.C', service_id: 5 }
-    ]
-  };
+  // Récupérer l'utilisateur connecté depuis le localStorage
+  const userData = localStorage.getItem('user');
+  const bureau_id = localStorage.getItem('bureau_id');
+  const service_id = localStorage.getItem('service_id');
+  const department_id = localStorage.getItem('department_id');
+  const parseddepartment_id = department_id ? JSON.parse(department_id) : null;
+  const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
+  const parsedservice_id = service_id ? JSON.parse(service_id) : null;
+  const parsedUser = userData ? JSON.parse(userData) : null;
 
-  const [ticket, setTicket] = useState({
-    typeDemande: '',
-    serialNumber: '',
-    equipmentType: '',
-    brand: '',
-    problemDescription: '',
-    status: 'SERVICE_VALIDATED',
-    priority: 'MEDIUM',
-    bureau: { id: '' },
-    department: { id: '' },
-    service: { id: '' },
-    createdBy: { id: 1 }
+
+
+  const [ticket, setTicket] = useState(() => {
+    const bureauId = parsedbureau_id?.id || '';
+    const serviceId = parsedservice_id?.id || '';
+  
+    let status = 'SERVICE_VALIDATED';
+  
+    if (bureauId === 10 && serviceId === 10 && parsedUser.role !== "CHEF_DEP_SI" ) {
+      status = 'DEPT_VALIDATED';
+    } else if (bureauId === 10 && serviceId !== 10) {
+      status = 'SERVICE_VALIDATED';
+    }
+    // else if (parsedUser.role === "CHEF_DEP_SI") {
+    //   status = 'SI_SERVICE';
+    // }
+  
+    return {
+      typeDemande: '',
+      serialNumber: '',
+      equipmentType: '',
+      brand: '',
+      problemDescription: '',
+      status,
+      priority: 'MEDIUM',
+      bureau: { id: bureauId },
+      department: { id: parseddepartment_id?.id || '' },
+      service: { id: serviceId },
+      createdBy: { id: parsedUser?.id || '' }
+    };
   });
-
-  const [filteredServices, setFilteredServices] = useState([]);
-  const [filteredBureaus, setFilteredBureaus] = useState([]);
-
+  
+console.log("parsedUser?.department_id",parsedUser?.department_id)
+console.log("parsedUser?.department_id",parsedUser?.id)
   const equipmentTypes = ['Ordinateur portable', 'Ordinateur de bureau', 'Imprimante', 'Scanner'];
   const brands = ['Dell', 'HP', 'Lenovo', 'Epson', 'Canon', 'Autre'];
 
@@ -62,15 +62,7 @@ const TicketFormPage = () => {
       const fetchTicket = async () => {
         try {
           const response = await api.getTicket(id);
-          const ticketData = response.data;
-
-          const servicesForDept = data.services.filter(s => s.departement_id === ticketData.department.id);
-          setFilteredServices(servicesForDept);
-
-          const bureausForService = data.bureaux.filter(b => b.service_id === ticketData.service.id);
-          setFilteredBureaus(bureausForService);
-
-          setTicket(ticketData);
+          setTicket(response.data);
         } catch (error) {
           console.error("Error fetching ticket:", error);
         }
@@ -79,54 +71,12 @@ const TicketFormPage = () => {
     }
   }, [id]);
 
-  useEffect(() => {
-    if (ticket.department.id && !id) {
-      const servicesForDept = data.services.filter(s => s.departement_id === ticket.department.id);
-      setFilteredServices(servicesForDept);
-      setTicket(prev => ({
-        ...prev,
-        service: { id: '' },
-        bureau: { id: '' }
-      }));
-      setFilteredBureaus([]);
-    }
-  }, [ticket.department.id]);
-
-  useEffect(() => {
-    if (ticket.service.id && !id) {
-      const bureausForService = data.bureaux.filter(b => b.service_id === ticket.service.id);
-      setFilteredBureaus(bureausForService);
-      setTicket(prev => ({
-        ...prev,
-        bureau: { id: '' }
-      }));
-    }
-  }, [ticket.service.id]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === 'departmentId') {
-      setTicket({
-        ...ticket,
-        department: { id: parseInt(value) }
-      });
-    } else if (name === 'serviceId') {
-      setTicket({
-        ...ticket,
-        service: { id: parseInt(value) }
-      });
-    } else if (name === 'bureauId') {
-      setTicket({
-        ...ticket,
-        bureau: { id: parseInt(value) }
-      });
-    } else {
-      setTicket({
-        ...ticket,
-        [name]: value
-      });
-    }
+    setTicket({
+      ...ticket,
+      [name]: value
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -135,9 +85,28 @@ const TicketFormPage = () => {
       if (id) {
         await api.updateTicket(id, ticket);
       } else {
+        console.log("ticket :", ticket);
         await api.createTicket(ticket);
       }
-      navigate('/');
+      switch(parsedUser.role) {
+        case 'ADMIN':
+          navigate('/admin');
+          break;
+        case 'CHEF_BUR':
+          navigate('/ticketsPage');
+          break;
+          case 'CHEF_SI':
+            navigate('/c-s-v');
+            break;
+            case 'CHEF_DEP':
+                navigate('/c-d-v');
+                break;
+                case 'CHEF_DEP_SI':
+                    navigate('/c-d-si');
+                    break;
+        default:
+          navigate('/');
+      }
     } catch (error) {
       console.error("Error saving ticket:", error);
     }
@@ -159,62 +128,11 @@ const TicketFormPage = () => {
             onChange={handleChange}
             label="Type de demande"
           >
-            <MenuItem value="maintenance">Demande de maintenance</MenuItem>
+            <MenuItem value="maintenance">Demande de reparation</MenuItem>
             <MenuItem value="intervention">Demande d'intervention</MenuItem>
           </Select>
         </FormControl>
 
-        {/* Département */}
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel>Département</InputLabel>
-          <Select
-            name="departmentId"
-            value={ticket.department.id}
-            onChange={handleChange}
-            label="Département"
-          >
-            <MenuItem value="">Sélectionnez un département</MenuItem>
-            {data.departements.map(dept => (
-              <MenuItem key={dept.id} value={dept.id}>{dept.nom}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Service */}
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel>Service</InputLabel>
-          <Select
-            name="serviceId"
-            value={ticket.service.id}
-            onChange={handleChange}
-            label="Service"
-            disabled={!ticket.department.id}
-          >
-            <MenuItem value="">Sélectionnez un service</MenuItem>
-            {filteredServices.map(service => (
-              <MenuItem key={service.id} value={service.id}>{service.nom}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Bureau */}
-        <FormControl fullWidth margin="normal" required>
-          <InputLabel>Bureau</InputLabel>
-          <Select
-            name="bureauId"
-            value={ticket.bureau.id}
-            onChange={handleChange}
-            label="Bureau"
-            disabled={!ticket.service.id}
-          >
-            <MenuItem value="">Sélectionnez un bureau</MenuItem>
-            {filteredBureaus.map(bureau => (
-              <MenuItem key={bureau.id} value={bureau.id}>{bureau.nom}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* Champs conditionnels (affichés seulement pour "maintenance") */}
         {ticket.typeDemande === 'maintenance' && (
           <>
             <TextField
@@ -257,7 +175,6 @@ const TicketFormPage = () => {
           </>
         )}
 
-        {/* Description */}
         <TextField
           fullWidth
           multiline
@@ -270,7 +187,6 @@ const TicketFormPage = () => {
           required
         />
 
-        {/* Priorité */}
         <FormControl fullWidth margin="normal">
           <InputLabel>Priorité</InputLabel>
           <Select
