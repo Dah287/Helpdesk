@@ -54,14 +54,14 @@ public class Ticket {
     private TypeDemande typeDemande;
 
     @ManyToOne
-    @JoinColumn(name = "bureau_id", nullable = false)
+    @JoinColumn(name = "bureau_id", nullable = true)
     private Bureau bureau;
     @ManyToOne
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
     @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false)
+    @JoinColumn(name = "service_id", nullable = true)
     private Service service;
 
     @ManyToOne

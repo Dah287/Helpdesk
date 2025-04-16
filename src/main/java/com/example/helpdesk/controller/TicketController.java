@@ -139,16 +139,18 @@ public class TicketController {
         return ticketService.getTicketsByDepartmentAndStatus(departmentId);
     }
     //Récupère les tickets pour un département et statut donnés
-    @GetMapping("/tickets-chef-service-validation/{departmentId}")
+    @GetMapping("/tickets-chef-service-validation/{departmentId}/{userId}")
     public List<Ticket> getTicketsByDeptAndStatus_SV(
-            @PathVariable Long departmentId) {
-        return ticketService.getTicketsByDepartmentAndStatus_SV(departmentId);
+            @PathVariable Long departmentId,
+            @PathVariable Long userId) {
+        return ticketService.getTicketsByDepartmentAndStatus_SV(departmentId,userId);
     }
     //Récupère les tickets pour un département et statut donnés
-    @GetMapping("/tickets-chef-Dep-validation/{departmentId}")
+    @GetMapping("/tickets-chef-Dep-validation/{departmentId}/{userId}")
     public List<Ticket> getTicketsByDeptAndStatus_DV(
-            @PathVariable Long departmentId) {
-        return ticketService.getTicketsByDepartmentAndStatus_DV(departmentId);
+            @PathVariable Long departmentId,
+            @PathVariable Long userId) {
+        return ticketService.getTicketsByDepartmentAndStatus_DV(departmentId,userId);
     }
     //Récupère les tickets pour un département et statut donnés
     @GetMapping("/tickets-chef-Dep-SI")

@@ -99,6 +99,8 @@ public class TicketService {
 
     @Autowired
     private DepartmentRepository departmentRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     // Récupérer les tickets assignés à un username
     public List<Ticket> getTicketsAssignedToUser(String username) {
@@ -114,17 +116,23 @@ public class TicketService {
     }
 
     //Récupère les tickets pour"chef de service validation " un département et statut donnés
-    public List<Ticket> getTicketsByDepartmentAndStatus_SV(Long departmentId) {
+    public List<Ticket> getTicketsByDepartmentAndStatus_SV(Long departmentId,Long userId) {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("Département non trouvé"));
-        return ticketRepository.findByDepartmentAndStatus(department, TicketStatus.SERVICE_VALIDATED);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User non trouvé"));
+        return ticketRepository.findByDepartmentAndStatusOrCreatedBy(department, TicketStatus.SERVICE_VALIDATED,user);
     }
 
     //Récupère les tickets pour"chef de service validation " un département et statut donnés
-    public List<Ticket> getTicketsByDepartmentAndStatus_DV(Long departmentId) {
+    public List<Ticket> getTicketsByDepartmentAndStatus_DV(Long departmentId,Long userId) {
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new RuntimeException("Département non trouvé"));
-        return ticketRepository.findByDepartmentAndStatus(department, TicketStatus.DEPT_VALIDATED);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User non trouvé"));
+        return ticketRepository.findByDepartmentAndStatusOrCreatedBy(department, TicketStatus.DEPT_VALIDATED,user);
     }
 
     //Récupère les tickets pour"chef de service validation " un département et statut donnés

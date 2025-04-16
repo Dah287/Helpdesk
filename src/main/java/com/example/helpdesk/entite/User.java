@@ -16,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,19 +25,33 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    private String matricule;
+
+    @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String email;
+    private Role role; // ADMIN, TECHNICIEN, UTILISATEUR
 
-    @Column(nullable = false)
-    private String role; // ADMIN, TECHNICIEN, UTILISATEUR
     @JsonIgnore
     @OneToMany(mappedBy = "createdBy")
     private List<Ticket> tickets = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "bureau_id", nullable = false)
+    private Bureau bureau;
 
-    // Getter and Setter for id
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
+
+    @ManyToOne
+    @JoinColumn(name = "service_id", nullable = false)
+    private Service service;
+
+    // Getters et Setters manuels (si nécessaires)
+
     public Long getId() {
         return id;
     }
@@ -45,7 +60,6 @@ public class User {
         this.id = id;
     }
 
-    // Getter and Setter for username
     public String getUsername() {
         return username;
     }
@@ -54,7 +68,14 @@ public class User {
         this.username = username;
     }
 
-    // Getter and Setter for password
+    public String getMatricule() {
+        return matricule;
+    }
+
+    public void setMatricule(String matricule) {
+        this.matricule = matricule;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -63,30 +84,43 @@ public class User {
         this.password = password;
     }
 
-    // Getter and Setter for email
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    // Getter and Setter for role
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
-    // Getter and Setter for tickets
     public List<Ticket> getTickets() {
         return tickets;
     }
 
     public void setTickets(List<Ticket> tickets) {
         this.tickets = tickets;
+    }
+
+    public Bureau getBureau() {
+        return bureau;
+    }
+
+    public void setBureau(Bureau bureau) {
+        this.bureau = bureau;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    public Service getService() {
+        return service;
+    }
+
+    public void setService(Service service) {
+        this.service = service;
     }
 }
