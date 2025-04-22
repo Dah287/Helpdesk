@@ -162,7 +162,10 @@ const shouldShowValidateButton = (ticket) => {
     </IconButton>
     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
 
+    {parsedUser?.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id?.bureau}`}
+      {parsedUser?.role === "CHEF_SI" && `Chef de service - ${parsedservice_id?.name}`}
       {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`}
+      {parsedUser?.role === "CHEF_DEP_SI" && `Chef de département - ${parseddepartment_id?.name}`}
     </Typography>
 
     <IconButton color="inherit">
@@ -217,11 +220,9 @@ const shouldShowValidateButton = (ticket) => {
             onChange={(e) => handleFilter(e.target.value)}
             label="Statut"
           >
-            <MenuItem value="all">Tous</MenuItem>
-            <MenuItem value="OPEN">Ouvert</MenuItem>
-            <MenuItem value="IN_PROGRESS">En cours</MenuItem>
-            <MenuItem value="RESOLVED">Résolu</MenuItem>
-            <MenuItem value="CLOSED">Clôturé</MenuItem>
+              <MenuItem value="all">Tous</MenuItem>    
+                  <MenuItem value="EN_COURS">En cours</MenuItem>
+                  <MenuItem value="RESOLU">Résolu</MenuItem>
           </Select>
         </FormControl>
         
@@ -255,12 +256,12 @@ const shouldShowValidateButton = (ticket) => {
               filteredTickets.map((ticket) => (
                 <TableRow key={ticket.id} hover>
                   <TableCell>{ticket.id}</TableCell>
-                  <TableCell>{ticket.serialNumber}</TableCell>
+                  <TableCell>{ticket.serialNumber || '-'}</TableCell>
                   <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                   <TableCell>{ticket.department?.name || '-'}</TableCell>
                   <TableCell>{ticket.service?.name || '-'}</TableCell>
                   <TableCell>
-                    {ticket.equipmentType} {ticket.brand && `(${ticket.brand})`}
+                    {ticket.equipmentType || '-'} {ticket.brand && `(${ticket.brand})`}
                   </TableCell>
                   <TableCell sx={{ maxWidth: 300 }}>
                     <Typography noWrap>
@@ -321,6 +322,12 @@ const shouldShowValidateButton = (ticket) => {
           </Typography>
           <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
             {selectedTicket.problemDescription}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          Type de demande
+          </Typography>
+          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
+            {selectedTicket.typeDemande}
           </Typography>
         </Box>
 

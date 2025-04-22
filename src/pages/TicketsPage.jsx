@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { 
   Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, Button, TextField,
-  Select, MenuItem, FormControl, InputLabel, Chip,
+  Select, MenuItem, FormControl, InputLabel, Chip,Menu,
   Typography, Box, AppBar, Toolbar, IconButton, Avatar
 } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import api from '../services/api';
 import useAutoLogout from './useAutoLogout';
+
+import { useNavigate } from 'react-router-dom';
 const TicketsPage = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -62,7 +65,7 @@ const parsedUser = userData ? JSON.parse(userData) : null;
     setFilter(status);
     try {
       const response = status === 'all' 
-        ? await api.getAllTickets()
+        ? await api.getByUserName(parsedUser.username)
         : await api.getTicketsByStatus(status);
       setTickets(response.data);
     } catch (error) {
@@ -97,8 +100,24 @@ const parsedUser = userData ? JSON.parse(userData) : null;
       default: return 'default';
     }
   };
-  useAutoLogout();
 
+  useAutoLogout();
+const [anchorEl, setAnchorEl] = useState(null);
+const open = Boolean(anchorEl);
+
+const navigate = useNavigate();
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  
+  const handleLogout = () => {
+    localStorage.clear(); // ou uniquement les clés que tu veux
+    navigate('/');
+  };
   return (
     <>
       {/* AppBar */}
@@ -116,7 +135,30 @@ const parsedUser = userData ? JSON.parse(userData) : null;
           <IconButton color="inherit">
             <NotificationsIcon />
           </IconButton>
-          <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
+            <IconButton onClick={handleAvatarClick} color="inherit">
+            <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem disabled>
+              <Typography variant="body1">{parsedUser?.username} {parsedUser?.prenom}</Typography>
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+              Déconnexion
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
@@ -143,11 +185,9 @@ const parsedUser = userData ? JSON.parse(userData) : null;
               onChange={(e) => handleFilter(e.target.value)}
               label="Statut"
             >
-              <MenuItem value="all">Tous</MenuItem>
-              <MenuItem value="OPEN">Ouvert</MenuItem>
-              <MenuItem value="IN_PROGRESS">En cours</MenuItem>
-              <MenuItem value="RESOLVED">Résolu</MenuItem>
-              <MenuItem value="CLOSED">Clôturé</MenuItem>
+              <MenuItem value="all">Tous</MenuItem>    
+                  <MenuItem value="EN_COURS">En cours</MenuItem>
+                  <MenuItem value="RESOLU">Résolu</MenuItem>
             </Select>
           </FormControl>
           

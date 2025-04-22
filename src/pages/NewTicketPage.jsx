@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TextField, Button, Select, MenuItem,
+  Box,TextField, Button, Select, MenuItem,
   FormControl, InputLabel, Container, Typography
 } from '@mui/material';
+
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const TicketFormPage = () => {
   const { id } = useParams();
@@ -112,6 +114,18 @@ console.log("parsedUser?.department_id",parsedUser?.id)
     }
   };
 
+
+  const handleBack = () => {
+    // Utilisation de useHistory si vous utilisez React Router v5
+    // const history = useHistory();
+    // history.goBack();
+  
+    // Avec React Router v6+
+   
+    navigate(-1); // Retour à la page précédente
+    // ou navigate('/chemin-de-retour') pour un chemin spécifique
+  };
+
   return (
     <Container maxWidth="md">
       <Typography variant="h4" gutterBottom>
@@ -201,14 +215,14 @@ console.log("parsedUser?.department_id",parsedUser?.id)
           </Select>
         </FormControl>
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          style={{ marginTop: 20 }}
-        >
-          {id ? 'Mettre à jour' : 'Créer le Ticket'}
-        </Button>
+        <Box display="flex" gap={1}>  
+          <Button variant="outlined" onClick={handleBack} startIcon={<ArrowBackIcon />}>
+            Retour
+          </Button>
+          <Button type="submit" variant="contained" color="primary">
+            {id ? 'Mettre à jour' : 'Créer le Ticket'}
+          </Button>
+        </Box>
       </form>
     </Container>
   );

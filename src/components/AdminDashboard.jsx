@@ -23,12 +23,14 @@ import {
   Visibility as ViewIcon // Nouvel import
 } from '@mui/icons-material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
+import ConstructionIcon from '@mui/icons-material/Construction';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 import LogoutIcon from '@mui/icons-material/Logout';
 import useAutoLogout from '../pages/useAutoLogout';
 import { useNavigate } from 'react-router-dom';
-
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import FileDownloadIcon from '@mui/icons-material/FileDownload'; // 🔽 icône de téléchargement
 const AdminDashboard = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -56,21 +58,72 @@ const AdminDashboard = () => {
   ];
 
   // Statistiques
-  const stats = [
-    { title: 'Tickets Ouverts', value: 24, icon: '📋', color: 'primary' },
-    { title: 'En Cours', value: 12, icon: '⏳', color: 'warning' },
-    { title: 'Résolus', value: 42, icon: '✅', color: 'success' },
-    { title: 'Utilisateurs', value: 156, icon: '👥', color: 'info' }
-  ];
+  const [stats, setStats] = useState([
+    { title: 'Tickets Ouverts', value: 0, icon: '📋', color: 'primary' },
+    { title: 'En Cours', value: 0, icon: '⏳', color: 'warning' },
+    { title: 'Résolus', value: 0, icon: '✅', color: 'success' },
+    { title: 'Utilisateurs', value: 0, icon: '👥', color: 'info' },
+  ]);
 
   useEffect(() => {
     loadTickets();
+
+
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [ticketsRes, usersRes] = await Promise.all([
+          fetch('http://192.168.1.89:8082/api/tickets'),
+          fetch('http://192.168.1.89:8082/api/utilisateurs'),
+        ]);
+
+        const tickets = await ticketsRes.json();
+        const users = await usersRes.json();
+
+        const total = tickets.length;
+        const ouverts = tickets.filter(t => t.status === 'SI_SERVICE').length;
+        const encours = tickets.filter(t => t.status === 'EN_COURS').length;
+        const resolus = tickets.filter(t => t.status === 'RESOLU' ).length;
+
+        setStats([
+          { title: 'Tickets Ouverts', value: ouverts, icon: '📋', color: 'primary' },
+          { title: 'En Cours', value: encours, icon: '⏳', color: 'warning' },
+          { title: 'Résolus', value: resolus, icon: '✅', color: 'success' },
+          { title: 'Utilisateurs', value: users.length, icon: '👥', color: 'info' },
+        ]);
+      } catch (error) {
+        console.error('Erreur lors du chargement des statistiques :', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+  const handleInputChange = async () => {
+    try {
+      const response = await api.updateTicketFields(selectedTicket.id, {
+        foundProblem: selectedTicket.foundProblem,
+        appliedSolution: selectedTicket.appliedSolution,
+      });
+      alert('Ticket mis à jour avec succès !');
+      loadTickets();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour :', error);
+      alert('Une erreur est survenue.');
+    }
+  };
+  
+  
+  
 
   const loadTickets = async () => {
     try {
       const response = await api.getAllTicketsAdmin();
       setTickets(response.data);
+      console.log("data:",response.data)
     } catch (error) {
       console.error("Error loading tickets:", error);
     }
@@ -96,7 +149,12 @@ const AdminDashboard = () => {
   const handleUpdateStatus = async (ticketId, newStatus) => {
     try {
       await api.updateTicketStatus(ticketId, newStatus);
+      if(newStatus ==="RESOLU")
+      {
+        await api.validateSI(ticketId);
+      }
       loadTickets(); // Recharger la liste
+
     } catch (error) {
       console.error("Error updating ticket status:", error);
     }
@@ -149,8 +207,40 @@ const AdminDashboard = () => {
       navigate('/');
     };
 
+
+    const handleDownloadReport = async (ticketId) => {
+      try {
+        const response = await fetch(`http://192.168.1.89:8082/api/tickets/${ticketId}/rapport`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/pdf'
+          }
+        });
+    
+        if (!response.ok) {
+          throw new Error("Erreur lors du téléchargement");
+        }
+    
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `rapport_ticket_${ticketId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+      } catch (error) {
+        console.error("Erreur de téléchargement :", error);
+        alert("Impossible de télécharger le rapport.");
+      }
+    };
+
+
+
+
+
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex',width: 'calc(130% - 20px)' }}>
       <CssBaseline />
       
       {/* Barre de navigation */}
@@ -197,7 +287,7 @@ const AdminDashboard = () => {
         variant="persistent"
         open={drawerOpen}
         sx={{
-          width: 240,
+          width: 20,
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
         }}
@@ -320,9 +410,9 @@ const AdminDashboard = () => {
                   label="Statut"
                 >
                   <MenuItem value="all">Tous</MenuItem>
-                  <MenuItem value="OPEN">Ouvert</MenuItem>
-                  <MenuItem value="IN_PROGRESS">En cours</MenuItem>
-                  <MenuItem value="RESOLVED">Résolu</MenuItem>
+                  <MenuItem value="SI_SERVICE">Recu</MenuItem>
+                  <MenuItem value="EN_COURS">En cours</MenuItem>
+                  <MenuItem value="RESOLU">Résolu</MenuItem>
                 </Select>
               </FormControl>
               
@@ -337,7 +427,10 @@ const AdminDashboard = () => {
                   <TableRow>
                     <TableCell>ID</TableCell>
                     <TableCell>Créé par</TableCell>
+                    <TableCell>Bureau</TableCell>
+                    <TableCell>Service</TableCell>
                     <TableCell>Département</TableCell>
+                    <TableCell>Type Demande</TableCell>
                     <TableCell>Problème</TableCell>
                     <TableCell>Priorité</TableCell>
                     <TableCell>Statut</TableCell>
@@ -350,7 +443,10 @@ const AdminDashboard = () => {
           <TableRow key={ticket.id} hover>
             <TableCell>{ticket.id}</TableCell>
             <TableCell>{ticket.createdBy?.username}</TableCell>
+            <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
+            <TableCell>{ticket.service?.name || '-'}</TableCell>
             <TableCell>{ticket.department?.name}</TableCell>
+            <TableCell>{ticket.typeDemande}</TableCell>
             <TableCell sx={{ maxWidth: 200 }}>
               <Typography noWrap>
                 {ticket.problemDescription}
@@ -371,6 +467,7 @@ const AdminDashboard = () => {
                 label={ticket.status} 
                 color={
                   ticket.status === 'OPEN' ? 'primary' : 
+                  ticket.status === 'TRANS_SM' ? 'primary' : 
                   ticket.status === 'EN_COURS' ? 'warning' : 'success'
                 }
                 size="small"
@@ -380,27 +477,43 @@ const AdminDashboard = () => {
               {new Date(ticket.createdAt).toLocaleDateString()}
             </TableCell>
             <TableCell>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Tooltip title="Voir détails">
-                  <IconButton onClick={() => handleViewDetails(ticket)}>
-                    <ViewIcon color="primary" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Mettre en cours">
-                  <IconButton 
-                    onClick={() => handleUpdateStatus(ticket.id, 'EN_COURS')}
-                    color="warning"
-                  >
-                    <HourglassTopIcon /> {/* Vous devrez importer cet icône */}
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Résoudre">
-                  <IconButton  onClick={() => handleUpdateStatus(ticket.id, 'RESOLU')}>
-                    <ResolveIcon color="success" />
-                  </IconButton>
-                </Tooltip>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+  <Tooltip title="Voir détails">
+    <IconButton onClick={() => handleViewDetails(ticket)}>
+      <ViewIcon color="primary" />
+    </IconButton>
+  </Tooltip>
 
-              </Box>
+  <Tooltip title="Mettre en cours">
+    <IconButton onClick={() => handleUpdateStatus(ticket.id, 'EN_COURS')} color="warning">
+      <HourglassTopIcon />
+    </IconButton>
+  </Tooltip>
+
+      {/* Nouveau bouton pour transmettre à la société de maintenance */}
+      <Tooltip title="Transmettre à la société de maintenance">
+      <IconButton 
+        onClick={() => handleUpdateStatus(ticket.id,'TRANS_SM')}
+        color="info"
+
+      >
+        <ConstructionIcon color="primary"/>
+      </IconButton>
+    </Tooltip>
+
+  <Tooltip title="Résoudre">
+    <IconButton onClick={() => handleUpdateStatus(ticket.id, 'RESOLU')}>
+      <ResolveIcon color="success" />
+    </IconButton>
+  </Tooltip>
+
+  {/* ✅ Bouton de téléchargement */}
+  <Tooltip title="Télécharger le rapport">
+    <IconButton onClick={() => handleDownloadReport(ticket.id)}>
+      <FileDownloadIcon color="secondary" />
+    </IconButton>
+  </Tooltip>
+</Box>
             </TableCell>
           </TableRow>
         ))}
@@ -422,6 +535,12 @@ const AdminDashboard = () => {
           </Typography>
           <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
             {selectedTicket.problemDescription}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          Type de demande
+          </Typography>
+          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
+            {selectedTicket.typeDemande}
           </Typography>
         </Box>
 
@@ -492,13 +611,54 @@ const AdminDashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Section pour d'autres détails si nécessaire */}
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
-            Autres informations
-          </Typography>
-          {/* Ajoutez ici d'autres champs si nécessaire */}
-        </Box>
+{/* Section pour d'autres détails si nécessaire */}
+<Box>
+  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+    Autres informations
+  </Typography>
+
+  <Box sx={{ mt: 2 }}>
+    <Typography variant="subtitle2">Problème trouvé</Typography>
+    <TextField
+      multiline
+      fullWidth
+      rows={3}
+      variant="outlined"
+      value={selectedTicket.foundProblem || ''}
+      onChange={(e) =>
+        setSelectedTicket((prev) => ({
+          ...prev,
+          foundProblem: e.target.value,
+        }))
+      }
+    />
+  </Box>
+
+  <Box sx={{ mt: 2 }}>
+    <Typography variant="subtitle2">Solution effectuée</Typography>
+    <TextField
+      multiline
+      fullWidth
+      rows={3}
+      variant="outlined"
+      value={selectedTicket.appliedSolution || ''}
+      onChange={(e) =>
+        setSelectedTicket((prev) => ({
+          ...prev,
+          appliedSolution: e.target.value,
+        }))
+      }
+    />
+  </Box>
+
+  {/* ✅ Bouton pour valider */}
+  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+    <Button variant="contained" color="primary" onClick={handleInputChange}>
+      Valider les modifications
+    </Button>
+  </Box>
+</Box>
+
       </Box>
     )}
   </DialogContent>

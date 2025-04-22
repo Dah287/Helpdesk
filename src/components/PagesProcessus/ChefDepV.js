@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Box, CssBaseline, AppBar, Toolbar, Typography, 
+  Avatar, Drawer, List, ListItem, ListItemIcon, 
+  ListItemText, Grid, Card, CardContent, TextField,
+  Button, Select, MenuItem, FormControl, InputLabel,
+  TableContainer, Table, TableHead, TableRow, TableCell,Menu,
+  TableBody, Chip, IconButton, Tooltip, Paper,
+  Dialog, DialogTitle, DialogContent, DialogActions // Nouveaux imports
+} from '@mui/material';
 import {
-    Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, Paper, Button, TextField,
-    Select, MenuItem, FormControl, InputLabel, Chip,Menu,
-    Typography, Box, AppBar, Toolbar, IconButton, Avatar
-  } from '@mui/material';
+    Dashboard as DashboardIcon,
+    ListAlt as TicketsIcon,
+    People as UsersIcon,
+    Settings as SettingsIcon,
+    Menu as MenuIcon,
+    Notifications as NotificationsIcon,
+    Refresh as RefreshIcon,
+    FilterAlt as FilterIcon,
+    Assignment as AssignmentIcon,
+    CheckCircle as ResolveIcon,
+    Close as CloseIcon,
+    Visibility as ViewIcon // Nouvel import
+  } from '@mui/icons-material';
 import useAutoLogout from '../../pages/useAutoLogout';
 import { useNavigate } from 'react-router-dom';
-  import MenuIcon from '@mui/icons-material/Menu';
-  import NotificationsIcon from '@mui/icons-material/Notifications';
+
 import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 import api from '../../services/api';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -17,13 +33,16 @@ const ChefDepV = () => {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
+ const [selectedTicket, setSelectedTicket] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+
   useEffect(() => {
     loadTickets();
   }, []);
 
   const loadTickets = async () => {
     try {
-      const response = await api.getAllTicketsDepV(parseddepartment_id.id,parsedUser.id);
+      const response = await api.getAllTicketsDepV2(parseddepartment_id.id);
       console.log("date :",response.data)
       setTickets(response.data);
     } catch (error) {
@@ -76,9 +95,10 @@ const ChefDepV = () => {
       const handleValidate = async (ticketId) => {
         try {
           await api.updateTicketDepV(ticketId);
+          await api.validateDep(ticketId);
           loadTickets(); // Recharger la liste
         } catch (error) {
-          console.error("Error updating ticket status:", error);
+          console.error("Error updating ticket status or update date departement", error);
         }
       };
 
@@ -118,6 +138,14 @@ const navigate = useNavigate();
     navigate('/');
   };
 
+        // Nouvelle fonction pour ouvrir les détails
+        const handleViewDetails = (ticket) => {
+          setSelectedTicket(ticket);
+          setOpenDialog(true);
+        };
+
+  
+
   return (
 
     <>
@@ -129,7 +157,9 @@ const navigate = useNavigate();
     </IconButton>
     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
 
+    {parsedUser?.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id?.bureau}`}
       {parsedUser?.role === "CHEF_SI" && `Chef de service - ${parsedservice_id?.name}`}
+      {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`}
 
     </Typography>
 
@@ -203,11 +233,9 @@ const navigate = useNavigate();
             onChange={(e) => handleFilter(e.target.value)}
             label="Statut"
           >
-            <MenuItem value="all">Tous</MenuItem>
-            <MenuItem value="OPEN">Ouvert</MenuItem>
-            <MenuItem value="IN_PROGRESS">En cours</MenuItem>
-            <MenuItem value="RESOLVED">Résolu</MenuItem>
-            <MenuItem value="CLOSED">Clôturé</MenuItem>
+              <MenuItem value="all">Tous</MenuItem>    
+                  <MenuItem value="EN_COURS">En cours</MenuItem>
+                  <MenuItem value="RESOLU">Résolu</MenuItem>
           </Select>
         </FormControl>
         
@@ -241,12 +269,12 @@ const navigate = useNavigate();
               filteredTickets.map((ticket) => (
                 <TableRow key={ticket.id} hover>
                   <TableCell>{ticket.id}</TableCell>
-                  <TableCell>{ticket.serialNumber}</TableCell>
+                  <TableCell>{ticket.serialNumber || '-'}</TableCell>
                   <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                   <TableCell>{ticket.department?.name || '-'}</TableCell>
                   <TableCell>{ticket.service?.name || '-'}</TableCell>
                   <TableCell>
-                    {ticket.equipmentType} {ticket.brand && `(${ticket.brand})`}
+                    {ticket.equipmentType || '-'} {ticket.brand && `(${ticket.brand})`}
                   </TableCell>
                   <TableCell sx={{ maxWidth: 300 }}>
                     <Typography noWrap>
@@ -270,7 +298,16 @@ const navigate = useNavigate();
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>
+                                    <TableCell>
+                                     
+                                  <Tooltip title="Voir détails">
+                                    <IconButton onClick={() => handleViewDetails(ticket)}>
+                                      <ViewIcon color="primary" />
+                                    </IconButton>
+                                  </Tooltip>
+                                      
+                                      </TableCell>
+                  {/* <TableCell>
                   <Button
                 variant="contained"
                 size="small"
@@ -287,7 +324,7 @@ const navigate = useNavigate();
                 Valider
                 </Button>
 
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               ))
             ) : (
@@ -298,6 +335,110 @@ const navigate = useNavigate();
               </TableRow>
             )}
           </TableBody>
+
+                    {/* Dialog Détails du Ticket */}
+<Dialog 
+  open={openDialog} 
+  onClose={() => setOpenDialog(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle>Détails du Ticket #{selectedTicket?.id}</DialogTitle>
+  <DialogContent dividers>
+    {selectedTicket && (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Description complète
+          </Typography>
+          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
+            {selectedTicket.problemDescription}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          Type de demande
+          </Typography>
+          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
+            {selectedTicket.typeDemande}
+          </Typography>
+        </Box>
+
+        <Grid container spacing={2}>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Numéro de série</Typography>
+            <Typography>{selectedTicket.serialNumber || '-'}</Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Bureau</Typography>
+            <Typography>{selectedTicket.bureau?.bureau || '-'}</Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Département</Typography>
+            <Typography>{selectedTicket.department?.name || '-'}</Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Service</Typography>
+            <Typography>{selectedTicket.service?.name || '-'}</Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Type d'équipement</Typography>
+            <Typography>
+              {selectedTicket.equipmentType} 
+              {selectedTicket.brand && ` (${selectedTicket.brand})`}
+            </Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Priorité</Typography>
+            <Chip 
+              label={selectedTicket.priority} 
+              color={
+                selectedTicket.priority === 'HIGH' ? 'error' : 
+                selectedTicket.priority === 'MEDIUM' ? 'warning' : 'default'
+              }
+            />
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Statut</Typography>
+            <Chip 
+              label={selectedTicket.status} 
+              color={
+                selectedTicket.status === 'OPEN' ? 'primary' : 
+                selectedTicket.status === 'IN_PROGRESS' ? 'warning' : 'success'
+              }
+            />
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Créé par</Typography>
+            <Typography>{selectedTicket.createdBy?.username || 'Non spécifié'}</Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Date de création</Typography>
+            <Typography>
+              {new Date(selectedTicket.createdAt).toLocaleString()}
+            </Typography>
+          </Grid>
+          <Grid item xs={6} sm={4}>
+            <Typography variant="subtitle2">Dernière mise à jour</Typography>
+            <Typography>
+              {new Date(selectedTicket.updatedAt || selectedTicket.createdAt).toLocaleString()}
+            </Typography>
+          </Grid>
+        </Grid>
+
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+            Autres informations
+          </Typography>
+          {/* Ajoutez ici d'autres champs si nécessaire */}
+        </Box>
+      </Box>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenDialog(false)} color="primary">
+      Fermer
+    </Button>
+  </DialogActions>
+</Dialog>
         </Table>
       </TableContainer>
     </Box>

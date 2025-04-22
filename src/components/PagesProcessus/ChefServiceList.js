@@ -44,7 +44,7 @@ const ChefServiceList = () => {
 
   const loadTickets = async () => {
     try {
-      const response = await api.getAllTicketsService(parseddepartment_id.id,parsedUser.id);
+      const response = await api.getAllTicketsService2(parseddepartment_id.id,parsedservice_id.id);
       console.log("date :",response.data)
       setTickets(response.data);
     } catch (error) {
@@ -97,9 +97,10 @@ const ChefServiceList = () => {
   const handleValidate = async (ticketId) => {
     try {
       await api.updateTicketService(ticketId);
+      await api.validateService(ticketId);
       loadTickets(); // Recharger la liste
     } catch (error) {
-      console.error("Error updating ticket status:", error);
+      console.error("Error updating ticket status or update date service validation", error);
     }
   };
   useAutoLogout();
@@ -184,11 +185,9 @@ const navigate = useNavigate();
             onChange={(e) => handleFilter(e.target.value)}
             label="Statut"
           >
-            <MenuItem value="all">Tous</MenuItem>
-            <MenuItem value="OPEN">Ouvert</MenuItem>
-            <MenuItem value="IN_PROGRESS">En cours</MenuItem>
-            <MenuItem value="RESOLVED">Résolu</MenuItem>
-            <MenuItem value="CLOSED">Clôturé</MenuItem>
+              <MenuItem value="all">Tous</MenuItem>    
+                  <MenuItem value="EN_COURS">En cours</MenuItem>
+                  <MenuItem value="RESOLU">Résolu</MenuItem>
           </Select>
         </FormControl>
         
@@ -222,12 +221,12 @@ const navigate = useNavigate();
               filteredTickets.map((ticket) => (
                 <TableRow key={ticket.id} hover>
                   <TableCell>{ticket.id}</TableCell>
-                  <TableCell>{ticket.serialNumber}</TableCell>
+                  <TableCell>{ticket.serialNumber || '-'}</TableCell>
                   <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                   <TableCell>{ticket.department?.name || '-'}</TableCell>
                   <TableCell>{ticket.service?.name || '-'}</TableCell>
                   <TableCell>
-                    {ticket.equipmentType} {ticket.brand && `(${ticket.brand})`}
+                    {ticket.equipmentType || '-'} {ticket.brand && `(${ticket.brand})`}
                   </TableCell>
                   <TableCell sx={{ maxWidth: 300 }}>
                     <Typography noWrap>
@@ -258,7 +257,7 @@ const navigate = useNavigate();
                   color="success"
                   startIcon={<CheckCircle />}
                   onClick={() => handleValidate(ticket.id)}
-                  disabled={ticket.status !== "SI_SERVICE"} // 👈 condition ici
+                  disabled={ticket.status !== "SERVICE_VALIDATED"} // 👈 condition ici
                   sx={{ 
                     backgroundColor: '#4caf50',
                     '&:hover': { backgroundColor: '#388e3c' },
