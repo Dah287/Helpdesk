@@ -37,6 +37,23 @@ public class Ticket {
     @Column(name = "created_at", updatable = false)
     private Date createdAt;
 
+
+    @Column(name = "dateValidationService")
+    private Date dateValidationService;
+
+    @Column(name = "foundProblem")
+    private String foundProblem;
+    @Column(name = "appliedSolution")
+    private String appliedSolution;
+
+
+    @Column(name = "dateValidationDep")
+    private Date dateValidationDep;
+
+
+    @Column(name = "dateResoluSI")
+    private Date dateResoluSI;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Date updatedAt;
@@ -180,5 +197,47 @@ public class Ticket {
     public void setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
     }
+
+    public Date getDateValidationService() {
+        return dateValidationService;
+    }
+
+    public void setDateValidationService(Date dateValidationService) {
+        this.dateValidationService = dateValidationService;
+    }
+
+    public Date getDateValidationDep() {
+        return dateValidationDep;
+    }
+
+    public void setDateValidationDep(Date dateValidationDep) {
+        this.dateValidationDep = dateValidationDep;
+    }
+
+    public Date getDateResoluSI() {
+        return dateResoluSI;
+    }
+
+    public void setDateResoluSI(Date dateResoluSI) {
+        this.dateResoluSI = dateResoluSI;
+    }
+
+    // Getters et setters
+    public String getFoundProblem() {
+        return foundProblem;
+    }
+
+    public void setFoundProblem(String foundProblem) {
+        this.foundProblem = foundProblem;
+    }
+
+    public String getAppliedSolution() {
+        return appliedSolution;
+    }
+
+    public void setAppliedSolution(String appliedSolution) {
+        this.appliedSolution = appliedSolution;
+    }
+
 
 }

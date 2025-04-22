@@ -4,11 +4,17 @@ import com.example.helpdesk.entite.*;
 import com.example.helpdesk.repository.TicketRepository;
 import com.example.helpdesk.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.MalformedURLException;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/api/tickets")
@@ -122,9 +128,43 @@ public class TicketController {
 
 
 
+
+
+
         // processus de validation
 
     }
+
+
+    @PutMapping("/{id}/date-validate-service")
+    public ResponseEntity<Ticket> updateDateValidationService(@PathVariable Long id) {
+        try {
+            Ticket ticket = ticketService.updatedateValidationService(id, new Date());
+            return ResponseEntity.ok(ticket);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+    @PutMapping("/{id}/date-validate-dep")
+    public ResponseEntity<Ticket> updatedateValidationDep(@PathVariable Long id) {
+        try {
+            Ticket ticket = ticketService.updatedateValidationDep(id, new Date());
+            return ResponseEntity.ok(ticket);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @PutMapping("/{id}/date-validate-si")
+    public ResponseEntity<Ticket> updatedateValidationSI(@PathVariable Long id) {
+        try {
+            Ticket ticket = ticketService.updatedateValidationSI(id, new Date());
+            return ResponseEntity.ok(ticket);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
 
 
     // Récupérer les tickets assignés à un username
@@ -145,12 +185,27 @@ public class TicketController {
             @PathVariable Long userId) {
         return ticketService.getTicketsByDepartmentAndStatus_SV(departmentId,userId);
     }
+    //2
+    //Récupère2 les tickets pour un département et statut donnés
+    @GetMapping("/tickets-chef-service-validation2/{departmentId}/{serviceId}")
+    public List<Ticket> getTicketsByDeptAndStatus_SV2(
+            @PathVariable Long departmentId,
+            @PathVariable Long serviceId) {
+        return ticketService.getTicketsByDepartmentAndStatus_SV2(departmentId,serviceId);
+    }
     //Récupère les tickets pour un département et statut donnés
     @GetMapping("/tickets-chef-Dep-validation/{departmentId}/{userId}")
     public List<Ticket> getTicketsByDeptAndStatus_DV(
             @PathVariable Long departmentId,
             @PathVariable Long userId) {
         return ticketService.getTicketsByDepartmentAndStatus_DV(departmentId,userId);
+    }
+    //2
+    //Récupère les tickets pour un département et statut donnés2
+    @GetMapping("/tickets-chef-Dep-validation2/{departmentId}")
+    public List<Ticket> getTicketsByDeptAndStatus_DV2(
+            @PathVariable Long departmentId) {
+        return ticketService.getTicketsByDepartmentAndStatus_DV2(departmentId);
     }
     //Récupère les tickets pour un département et statut donnés
     @GetMapping("/tickets-chef-Dep-SI")
@@ -163,7 +218,7 @@ public class TicketController {
     @PutMapping("/{id}/v-service")
     public ResponseEntity<Ticket> validationService(@PathVariable Long id) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow();
-        ticket.setStatus(TicketStatus.DEPT_VALIDATED);
+        ticket.setStatus(TicketStatus.SI_SERVICE);
         return ResponseEntity.ok(ticketRepository.save(ticket));
     }
 
@@ -188,5 +243,38 @@ public class TicketController {
     public List<Ticket> getTicketsByStatus() {
         return ticketService.getTicketsByStatus();
     }
+    //rapport
+    @GetMapping("/{ticketId}/rapport")
+    public ResponseEntity<byte[]> generateTicketReport(@PathVariable Long ticketId) throws MalformedURLException {
+        byte[] pdfBytes = ticketService.generatePdfReport(ticketId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "rapport-ticket-" + ticketId + ".pdf");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @PutMapping("/updateTicketFields/{id}")
+    public ResponseEntity<Ticket> updateTicketFields(
+            @PathVariable Long id,
+            @RequestBody Ticket updatedFields) {
+
+        Optional <Ticket> optionalTicket = ticketRepository.findById(id);
+        if (optionalTicket.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Ticket ticket = optionalTicket.get();
+
+        // Mise à jour uniquement des champs nécessaires
+        ticket.setFoundProblem(updatedFields.getFoundProblem());
+        ticket.setAppliedSolution(updatedFields.getAppliedSolution());
+        Ticket savedTicket = ticketRepository.save(ticket);
+        return ResponseEntity.ok(savedTicket);
+    }
+
+
+
 
 }

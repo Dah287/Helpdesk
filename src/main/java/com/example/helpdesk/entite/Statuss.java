@@ -7,5 +7,6 @@ public enum Statuss {
     SI_DEPT_VALIDATED, // Validé par le chef de département
     SI_SERVICE,       // Assigné au département SI
     RESOLVED,          // Résolu par l'admin SI
-    REJECTED           // Rejeté à n'importe quelle étape
+    REJECTED ,         // Rejeté à n'importe quelle étape
+    TRANS_SM,
 }
