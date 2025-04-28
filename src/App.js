@@ -13,7 +13,7 @@ function App() {
   return (
     <Router>
       <CssBaseline />
-      <Container maxWidth="lg" style={{ padding: '20px' }}>
+      <Container maxWidth="lg" style={{ padding: '0px',marginLeft: '340px' }}>
         <Routes>
           {/* <Route path="/" element={<Login />} />
           <Route path="/ticketsPage" element={<TicketsPage />} />

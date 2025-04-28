@@ -61,9 +61,10 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState([
     { title: 'Tickets Ouverts', value: 0, icon: '📋', color: 'primary' },
     { title: 'En Cours', value: 0, icon: '⏳', color: 'warning' },
+    { title: 'Transmettre à la société de maintenance', value: 0, icon: '🚚', color: 'primary' }, // Ajout ici
     { title: 'Résolus', value: 0, icon: '✅', color: 'success' },
     { title: 'Utilisateurs', value: 0, icon: '👥', color: 'info' },
-  ]);
+   ]);
 
   useEffect(() => {
     loadTickets();
@@ -86,10 +87,12 @@ const AdminDashboard = () => {
         const ouverts = tickets.filter(t => t.status === 'SI_SERVICE').length;
         const encours = tickets.filter(t => t.status === 'EN_COURS').length;
         const resolus = tickets.filter(t => t.status === 'RESOLU' ).length;
+        const transm = tickets.filter(t => t.status === 'TRANS_SM' ).length;
 
         setStats([
           { title: 'Tickets Ouverts', value: ouverts, icon: '📋', color: 'primary' },
           { title: 'En Cours', value: encours, icon: '⏳', color: 'warning' },
+          { title: 'Transmettre à la société de maintenance', value: transm, icon: '🚚', color: 'primary' },
           { title: 'Résolus', value: resolus, icon: '✅', color: 'success' },
           { title: 'Utilisateurs', value: users.length, icon: '👥', color: 'info' },
         ]);
@@ -169,8 +172,7 @@ const AdminDashboard = () => {
   };
 
   const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.problemDescription.toLowerCase().includes(search.toLowerCase()) ||
-                         ticket.createdBy?.username.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = ticket.serialNumber.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = filter === 'all' || ticket.status === filter;
     return matchesSearch && matchesFilter;
   });
@@ -240,7 +242,7 @@ const AdminDashboard = () => {
 
 
   return (
-    <Box sx={{ display: 'flex',width: 'calc(130% - 20px)' }}>
+    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)' }}>
       <CssBaseline />
       
       {/* Barre de navigation */}
@@ -287,7 +289,7 @@ const AdminDashboard = () => {
         variant="persistent"
         open={drawerOpen}
         sx={{
-          width: 20,
+          width: 0,
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
         }}
@@ -318,22 +320,23 @@ const AdminDashboard = () => {
       {/* Contenu principal */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}>
         {/* Section Statistiques */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          {stats.map((stat, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card sx={{ backgroundColor: `${stat.color}.light` }}>
-                <CardContent>
-                  <Typography variant="h5" component="div">
-                    {stat.icon} {stat.title}
-                  </Typography>
-                  <Typography variant="h3" component="div" sx={{ mt: 2 }}>
-                    {stat.value}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+{/* Section Statistiques */}
+<Grid container spacing={3} sx={{ mb: 3 }}>
+  {stats.map((stat, index) => (
+    <Grid item xs={12} sm={6} md={2.4} key={index}> {/* Modification de md à 2.4 */}
+      <Card sx={{ backgroundColor: `${stat.color}.light` }}>
+        <CardContent>
+          <Typography variant="h5" component="div">
+            {stat.icon} {stat.title}
+          </Typography>
+          <Typography variant="h3" component="div" sx={{ mt: 2 }}>
+            {stat.value}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Grid>
+  ))}
+ </Grid>
 
         {/* Section Graphique */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -413,6 +416,7 @@ const AdminDashboard = () => {
                   <MenuItem value="SI_SERVICE">Recu</MenuItem>
                   <MenuItem value="EN_COURS">En cours</MenuItem>
                   <MenuItem value="RESOLU">Résolu</MenuItem>
+                  <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
                 </Select>
               </FormControl>
               
@@ -426,6 +430,7 @@ const AdminDashboard = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>ID</TableCell>
+                    <TableCell>Numéro Série</TableCell>
                     <TableCell>Créé par</TableCell>
                     <TableCell>Bureau</TableCell>
                     <TableCell>Service</TableCell>
@@ -442,6 +447,11 @@ const AdminDashboard = () => {
         {filteredTickets.map((ticket) => (
           <TableRow key={ticket.id} hover>
             <TableCell>{ticket.id}</TableCell>
+            <TableCell>
+              <Typography noWrap>
+              {ticket.serialNumber|| '-'}
+              </Typography>
+              </TableCell>
             <TableCell>{ticket.createdBy?.username}</TableCell>
             <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
             <TableCell>{ticket.service?.name || '-'}</TableCell>
@@ -463,20 +473,29 @@ const AdminDashboard = () => {
               />
             </TableCell>
             <TableCell>
-              <Chip 
-                label={ticket.status} 
-                color={
-                  ticket.status === 'OPEN' ? 'primary' : 
-                  ticket.status === 'TRANS_SM' ? 'primary' : 
-                  ticket.status === 'EN_COURS' ? 'warning' : 'success'
-                }
-                size="small"
-              />
-            </TableCell>
+  <Chip
+   label={
+    ticket.status === 'EN_COURS' ? 'En cours' :
+    ticket.status === 'TRANS_SM' ? 'Société de maintenance' :
+    ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
+    ticket.status === 'RESOLU' ? 'Résolu' : // Ajout pour 'RESOLU'
+    ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute
+   }
+   color={
+    ticket.status === 'OPEN' ? 'primary' :
+    ticket.status === 'SI_SERVICE' ? 'secondary' :
+    ticket.status === 'TRANS_SM' ? 'primary' :
+    ticket.status === 'EN_COURS' ? 'warning' :
+    ticket.status === 'RESOLU' ? 'success' : // Couleur pour 'RESOLU'
+    'default' // Couleur par défaut si aucune condition n'est remplie
+   }
+   size="small"
+  />
+ </TableCell >
             <TableCell>
               {new Date(ticket.createdAt).toLocaleDateString()}
             </TableCell>
-            <TableCell>
+            <TableCell >
             <Box sx={{ display: 'flex', gap: 1 }}>
   <Tooltip title="Voir détails">
     <IconButton onClick={() => handleViewDetails(ticket)}>

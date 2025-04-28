@@ -85,10 +85,10 @@ const parsedUser = userData ? JSON.parse(userData) : null;
   const filteredTickets = tickets.filter(ticket => {
     const searchTerm = search.toLowerCase();
     return (
-      (ticket.department?.name || '').toLowerCase().includes(searchTerm) ||
-      (ticket.service?.name || '').toLowerCase().includes(searchTerm) ||
-      (ticket.bureau?.name || '').toLowerCase().includes(searchTerm) ||
-      (ticket.equipmentType || '').toLowerCase().includes(searchTerm) ||
+      // (ticket.department?.name || '').toLowerCase().includes(searchTerm) ||
+      // (ticket.service?.name || '').toLowerCase().includes(searchTerm) ||
+      // (ticket.bureau?.name || '').toLowerCase().includes(searchTerm) ||
+      // (ticket.equipmentType || '').toLowerCase().includes(searchTerm) ||
       (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
     );
   });
@@ -97,6 +97,9 @@ const parsedUser = userData ? JSON.parse(userData) : null;
     switch (status) {
       case 'EN_COURS': return 'warning';
       case 'RESOLU': return 'success';
+      case 'TRANS_SM': return 'primary';
+      case 'SERVICE_VALIDATED': return 'info';
+      case 'SI_SERVICE': return 'secondary';
       default: return 'default';
     }
   };
@@ -221,11 +224,11 @@ const navigate = useNavigate();
                 filteredTickets.map((ticket) => (
                   <TableRow key={ticket.id} hover>
                     <TableCell>{ticket.id}</TableCell>
-                    <TableCell>{ticket.serialNumber}</TableCell>
+                    <TableCell>{ticket.serialNumber|| '-'}</TableCell>
                     <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                     <TableCell>{ticket.department?.name || '-'}</TableCell>
                     <TableCell>{ticket.service?.name || '-'}</TableCell>
-                    <TableCell>{ticket.equipmentType} {ticket.brand && `(${ticket.brand})`}</TableCell>
+                    <TableCell>{ticket.equipmentType|| '-'} {ticket.brand && `(${ticket.brand})`}</TableCell>
                     <TableCell sx={{ maxWidth: 300 }}>
                       <Typography noWrap>{ticket.problemDescription}</Typography>
                     </TableCell>
@@ -239,7 +242,14 @@ const navigate = useNavigate();
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={ticket.status} 
+   label={
+    ticket.status === 'EN_COURS' ? 'En cours' :
+    ticket.status === 'TRANS_SM' ? 'Société de maintenance' :
+    ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
+    ticket.status === 'RESOLU' ? 'Résolu' :
+    ticket.status === 'SERVICE_VALIDATED' ? 'En cours de validation de service' : // Ajout pour 'SERVICE_VALIDATED'
+    ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute
+   }
                         color={getStatusColor(ticket.status)}
                         size="small"
                       />
