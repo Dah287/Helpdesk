@@ -31,14 +31,15 @@ import { useNavigate } from 'react-router-dom';
 const UserManagement = () => {
   // État initial pour selectedUser avec toutes les propriétés nécessaires
   const emptyUser = {
-    id: null,
+    matricule: '',
     nom: '',
     prenom: '',
     username: '',
-    email: '',
-    role: 'USER',
-    service: { name: '' },
-    bureau: { bureau: '' },
+    // email: '',
+    role: 'CHEF_BUR',
+    service: { id: '' },
+    bureau: { id: '' },
+    department: { id: '' },
     password: ''
   };
 
@@ -52,6 +53,53 @@ const UserManagement = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+
+  //
+  const [bureaux, setBureaux] = useState([]);
+  const [services, setServices] = useState([]);
+  const [departments, setDepartments] = useState([]);
+
+
+//
+
+// Chargement des bureaux
+const loadBureaux = async () => {
+    try {
+      const response = await api.getAllBureaux();
+      setBureaux(response.data);
+    } catch (error) {
+      console.error("Error loading bureaux:", error);
+    }
+  };
+  
+  // Chargement des services
+  const loadServices = async () => {
+    try {
+      const response = await api.getAllServices();
+      setServices(response.data);
+    } catch (error) {
+      console.error("Error loading services:", error);
+    }
+  };
+  
+  // Chargement des départements
+  const loadDepartments = async () => {
+    try {
+      const response = await api.getAllDepartments();
+      setDepartments(response.data);
+    } catch (error) {
+      console.error("Error loading departments:", error);
+    }
+  };
+
+//
+useEffect(() => {
+    loadUsers();
+    loadBureaux();
+    loadServices();
+    loadDepartments();
+  }, []);
 
   // Stats pour les cartes
   const [stats, setStats] = useState([
@@ -114,12 +162,13 @@ const UserManagement = () => {
   // Gestion des utilisateurs
   const handleCreateUser = async () => {
     try {
-      if (!selectedUser.username || !selectedUser.email) {
+      if (!selectedUser.username || !selectedUser.matricule) {
         alert('Le nom d\'utilisateur et l\'email sont obligatoires');
         return;
       }
-      
+      console.log('selectedUser :',selectedUser)
       await api.createUser(selectedUser);
+     
       loadUsers();
       setOpenDialog(false);
       setSelectedUser(emptyUser);
@@ -224,7 +273,7 @@ const UserManagement = () => {
             }}
           >
             <MenuItem disabled>
-              <Typography variant="body1">{parsedUser?.username} {parsedUser?.prenom}</Typography>
+              <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
             </MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
@@ -346,8 +395,10 @@ const UserManagement = () => {
                     <TableCell>Nom</TableCell>
                     <TableCell>Prénom</TableCell>
                     <TableCell>Nom d'utilisateur</TableCell>
-                    <TableCell>Email</TableCell>
+                    {/* <TableCell>Email</TableCell> */}
+                    <TableCell>Matricule</TableCell>
                     <TableCell>Rôle</TableCell>
+                    <TableCell>Department</TableCell>
                     <TableCell>Service</TableCell>
                     <TableCell>Bureau</TableCell>
                     <TableCell>Actions</TableCell>
@@ -367,7 +418,8 @@ const UserManagement = () => {
                         <TableCell>{user.nom|| '-'}</TableCell>
                         <TableCell>{user.prenom|| '-'}</TableCell>
                         <TableCell>{user.username|| '-'}</TableCell>
-                        <TableCell>{user.email|| '-'}</TableCell>
+                        <TableCell>{user.matricule|| '-'}</TableCell>
+                        {/* <TableCell>{user.email|| '-'}</TableCell> */}
                         <TableCell>
                           <Chip 
                             label={
@@ -382,6 +434,7 @@ const UserManagement = () => {
                             size="small"
                           />
                         </TableCell>
+                        <TableCell>{user.department?.name || '-'}</TableCell>
                         <TableCell>{user.service?.name || '-'}</TableCell>
                         <TableCell>{user.bureau?.bureau || '-'}</TableCell>
                         <TableCell>
@@ -473,7 +526,17 @@ const UserManagement = () => {
                   disabled={!editMode && !!selectedUser.id}
                 />
               </Grid>
+
               <Grid item xs={12} sm={6}>
+                <TextField
+                    label="Matricule"
+                    fullWidth
+                    value={selectedUser.matricule || ''}
+                    onChange={(e) => setSelectedUser({...selectedUser, matricule: e.target.value})}
+                    disabled={!editMode && !!selectedUser.id}
+                />
+                </Grid>
+                            {/* <Grid item xs={12} sm={6}>
                 <TextField
                   label="Email"
                   fullWidth
@@ -482,7 +545,7 @@ const UserManagement = () => {
                   onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
                   disabled={!editMode && !!selectedUser.id}
                 />
-              </Grid>
+              </Grid> */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Rôle</InputLabel>
@@ -492,36 +555,78 @@ const UserManagement = () => {
                     label="Rôle"
                     disabled={!editMode && !!selectedUser.id}
                   >
-                    <MenuItem value="ADMIN">Administrateur</MenuItem>
-                    <MenuItem value="TECH">Technicien</MenuItem>
-                    <MenuItem value="USER">Utilisateur</MenuItem>
+                  <MenuItem value="ADMIN">Administrateur</MenuItem>
+                  <MenuItem value="CHEF_DEP">Chef de département</MenuItem>
+                  <MenuItem value="CHEF_SI">Chef de Service</MenuItem>
+                  <MenuItem value="CHEF_BUR">Chef de Bureau</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Service"
-                  fullWidth
-                  value={selectedUser.service?.name || ''}
-                  onChange={(e) => setSelectedUser({
-                    ...selectedUser, 
-                    service: { ...selectedUser.service, name: e.target.value }
-                  })}
-                  disabled={!editMode && !!selectedUser.id}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Bureau"
-                  fullWidth
-                  value={selectedUser.bureau?.bureau || ''}
-                  onChange={(e) => setSelectedUser({
-                    ...selectedUser, 
-                    bureau: { ...selectedUser.bureau, bureau: e.target.value }
-                  })}
-                  disabled={!editMode && !!selectedUser.id}
-                />
-              </Grid>
+                <FormControl fullWidth>
+                    <InputLabel>Département</InputLabel>
+                    <Select
+                    value={selectedUser.department?.id || ''}
+                    onChange={(e) => setSelectedUser({
+                        ...selectedUser,
+                        department: { id: e.target.value }
+                    })}
+                    label="Département"
+                    disabled={!editMode && !!selectedUser.id}
+                    >
+                    <MenuItem value="">Sélectionnez un département</MenuItem>
+                    {departments.map((dept) => (
+                        <MenuItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                    <InputLabel>Service</InputLabel>
+                    <Select
+                    value={selectedUser.service?.id || ''}
+                    onChange={(e) => setSelectedUser({
+                        ...selectedUser,
+                        service: { id: e.target.value }
+                    })}
+                    label="Service"
+                    disabled={!editMode && !!selectedUser.id}
+                    >
+                    <MenuItem value="">Sélectionnez un service</MenuItem>
+                    {services.map((service) => (
+                        <MenuItem key={service.id} value={service.id}>
+                        {service.name}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                    <InputLabel>Bureau</InputLabel>
+                    <Select
+                    value={selectedUser.bureau?.id || ''}
+                    onChange={(e) => setSelectedUser({
+                        ...selectedUser,
+                        bureau: { id: e.target.value }
+                    })}
+                    label="Bureau"
+                    disabled={!editMode && !!selectedUser.id}
+                    >
+                    <MenuItem value="">Sélectionnez un bureau</MenuItem>
+                    {bureaux.map((bureau) => (
+                        <MenuItem key={bureau.id} value={bureau.id}>
+                        {bureau.bureau}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+                </Grid>
               {!selectedUser.id && (
                 <Grid item xs={12} sm={6}>
                   <TextField
@@ -554,7 +659,7 @@ const UserManagement = () => {
                   handleCreateUser();
                 }
               }}
-              disabled={!selectedUser.username || !selectedUser.email}
+              disabled={!selectedUser.username || !selectedUser.matricule}
             >
               {selectedUser.id ? 'Mettre à jour' : 'Créer'}
             </Button>

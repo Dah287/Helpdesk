@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.48:8082/api/tickets';
-const API_BASE_URL = 'http://192.168.1.48:8082/api/utilisateurs'; // à adapter selon ton backend
+const API_URL = 'http://192.168.1.35:8082/api/tickets';
+const API_BASE_URL = 'http://192.168.1.35:8082/api/utilisateurs'; // à adapter selon ton backend
+
+
 const api = {
   // CRUD Operations
   getAllTickets: () => axios.get(API_URL),
@@ -47,9 +49,12 @@ updateTicketDepSI: (id) => axios.put(`${API_URL}/${id}/v-si-dep`),
   updateUser: (id, userData) => axios.put(`${API_BASE_URL}/${id}`, userData),
 
   // Supprimer un utilisateur
-  deleteUser: (id) => axios.delete(`${API_BASE_URL}/${id}`)
+  deleteUser: (id) => axios.delete(`${API_BASE_URL}/${id}`),
 
-  
+    // New Methods for Bureaux, Services and Departments
+    getAllBureaux: () => axios.get(`${API_BASE_URL}/bureaux`),
+    getAllServices: () => axios.get(`${API_BASE_URL}/services`),
+    getAllDepartments: () => axios.get(`${API_BASE_URL}/departments`),
 };
 
 export default api;

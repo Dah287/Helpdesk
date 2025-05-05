@@ -189,7 +189,7 @@ const shouldShowValidateButton = (ticket) => {
   }}
 >
   <MenuItem disabled>
-    <Typography variant="body1">{parsedUser?.username} {parsedUser?.prenom}</Typography>
+    <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
   </MenuItem>
   <MenuItem onClick={handleLogout}>
     <LogoutIcon fontSize="small" sx={{ mr: 1 }} />

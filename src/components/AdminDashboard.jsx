@@ -172,8 +172,8 @@ const generateChartData = (tickets) => {
     const fetchData = async () => {
       try {
         const [ticketsRes, usersRes] = await Promise.all([
-          fetch('http://192.168.1.48:8082/api/tickets'),
-          fetch('http://192.168.1.48:8082/api/utilisateurs'),
+          fetch('http://192.168.1.35:8082/api/tickets'),
+          fetch('http://192.168.1.35:8082/api/utilisateurs'),
         ]);
 
         const tickets = await ticketsRes.json();
@@ -343,7 +343,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
     const handleDownloadReport = async (ticketId) => {
       try {
-        const response = await fetch(`http://192.168.1.48:8082/api/tickets/${ticketId}/rapport`, {
+        const response = await fetch(`http://192.168.1.35:8082/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf'
@@ -405,7 +405,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
   }}
 >
   <MenuItem disabled>
-    <Typography variant="body1">{parsedUser?.username} {parsedUser?.prenom}</Typography>
+    <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
   </MenuItem>
   <MenuItem onClick={handleLogout}>
     <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
