@@ -1,5 +1,6 @@
 package com.example.helpdesk.repository;
 
+import com.example.helpdesk.entite.Role;
 import com.example.helpdesk.entite.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRole(String role); // Pour trouver les techniciens
     Optional<User> findByMatricule(String matricule);
 
+
+    //
+
+
+    List<User> findByRole(Role role);
+    boolean existsByUsername(String username);
+    boolean existsByMatricule(String matricule);
 }

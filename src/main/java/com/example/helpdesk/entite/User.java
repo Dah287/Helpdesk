@@ -25,6 +25,12 @@ public class User {
     private String username;
 
     @Column(nullable = false)
+    private String prenom;
+
+    @Column(nullable = false)
+    private String nom;
+
+    @Column(nullable = false)
     private String matricule;
 
     @Column(nullable = false)
@@ -66,6 +72,25 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String username) {
+        this.prenom = username;
+    }
+
+
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String username) {
+        this.nom = username;
     }
 
     public String getMatricule() {

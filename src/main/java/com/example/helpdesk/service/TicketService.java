@@ -390,27 +390,41 @@ public class TicketService {
             document.add(new Paragraph("Priorité : " + ticket.getPriority()));
 
             // === SECTION : Localisation ===
-            document.add(new Paragraph("\nLocalisation").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
+            document.add(new Paragraph("Localisation").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
             document.add(new Paragraph("Bureau : " + ticket.getBureau().getBureau()));
             document.add(new Paragraph("Service : " + ticket.getService().getName()));
             document.add(new Paragraph("Département : " + ticket.getDepartment().getName()));
 
             // === SECTION : Détails de Création ===
-            document.add(new Paragraph("\nDétails de Création").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
+            document.add(new Paragraph("Détails de Création").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
             document.add(new Paragraph("Créé par : " + ticket.getCreatedBy().getUsername()));
             document.add(new Paragraph("Date de création : " + ticket.getCreatedAt()));
             document.add(new Paragraph("Dernière modification : " + ticket.getUpdatedAt()));
 
             // === SECTION : Workflow de Validation ===
-            document.add(new Paragraph("\nWorkflow de Validation").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
+            document.add(new Paragraph("Workflow de Validation").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
             document.add(new Paragraph("Chef de Service : Validé le " + ticket.getDateValidationService()));
             document.add(new Paragraph("Chef de Département : Validé le " + ticket.getDateValidationDep()));
             document.add(new Paragraph("Service Informatique : Résolu le " + ticket.getDateResoluSI()));
 
             // === SECTION : Résolution ===
-            document.add(new Paragraph("\nRésolution").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
+            document.add(new Paragraph("Résolution").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
             document.add(new Paragraph("Problème trouvé : " + (ticket.getFoundProblem() != null ? ticket.getFoundProblem() : "Non renseigné")));
             document.add(new Paragraph("Solution effectuée : " + (ticket.getAppliedSolution() != null ? ticket.getAppliedSolution() : "Non renseignée")));
+
+
+            // --- Signature et Date en bas à droite ---
+            Paragraph signature = new Paragraph("Signature : ................................");
+            Paragraph date = new Paragraph("Date : " + java.time.LocalDate.now());
+
+            // Créer une table pour aligner la signature et la date à droite
+            Table footerTable = new Table(UnitValue.createPercentArray(new float[]{50, 50})).useAllAvailableWidth();
+            footerTable.addCell(new Cell().setBorder(Border.NO_BORDER)); // Espace à gauche
+            Cell signatureDateCell = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT);
+            signatureDateCell.add(signature).add(new Paragraph("\n")).add(date);
+            footerTable.addCell(signatureDateCell);
+
+            document.add(footerTable);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -419,4 +433,7 @@ public class TicketService {
         document.close();
         return out.toByteArray();
     }
+
+
 }
+
