@@ -23,7 +23,7 @@ const Login = () => {
     
     try {
 
-      const response = await axios.post('http://192.168.1.89:8082/api/auth/login', {
+      const response = await axios.post('http://192.168.1.48:8082/api/auth/login', {
         matricule,
         password
       });

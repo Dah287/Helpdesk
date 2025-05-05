@@ -22,6 +22,7 @@ import {
   Close as CloseIcon,
   Visibility as ViewIcon // Nouvel import
 } from '@mui/icons-material';
+import { Pagination } from '@mui/material';
 import HourglassTopIcon from '@mui/icons-material/HourglassTop';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -31,31 +32,126 @@ import useAutoLogout from '../pages/useAutoLogout';
 import { useNavigate } from 'react-router-dom';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import FileDownloadIcon from '@mui/icons-material/FileDownload'; // 🔽 icône de téléchargement
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { CircularProgress } from '@mui/material';
+import { Link } from 'react-router-dom';
 const AdminDashboard = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+
+  
+
+  const [searchTerm, setSearchTerm] = useState('');
+const [serialNumberSearch, setSerialNumberSearch] = useState('');
+const [bureauSearch, setBureauSearch] = useState('');
+const [serviceSearch, setServiceSearch] = useState('');
+
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
 
 
+
+
+
+
+  const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
+  const [ticketToResolve, setTicketToResolve] = useState(null);
+
+  const handleResolveClick = (ticket) => {
+    setTicketToResolve(ticket);
+    setSelectedTicket(ticket);
+    setResolveDialogOpen(true);
+  };
+
+
+  const handleConfirmResolve = async () => {
+    try {
+      // D'abord, mettre à jour les champs foundProblem et appliedSolution
+      await api.updateTicketFields(ticketToResolve.id, {
+        foundProblem: selectedTicket.foundProblem,
+        appliedSolution: selectedTicket.appliedSolution,
+      });
+      
+      // Ensuite, changer le statut
+      await api.updateTicketStatus(ticketToResolve.id, 'RESOLU');
+      await api.validateSI(ticketToResolve.id);
+      
+      loadTickets();
+      setResolveDialogOpen(false);
+      alert('Ticket résolu avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la résolution :', error);
+      alert('Une erreur est survenue.');
+    }
+  };
+
     // Nouvelle fonction pour ouvrir les détails
     const handleViewDetails = (ticket) => {
       setSelectedTicket(ticket);
       setOpenDialog(true);
     };
+// implémenter le chartData à partir des données de l'API
+const [chartData, setChartData] = useState([]);
+const [loadingChart, setLoadingChart] = useState(true);
 
-  // Données pour le graphique
-  const chartData = [
-    { name: 'Jan', tickets: 40 },
-    { name: 'Feb', tickets: 30 },
-    { name: 'Mar', tickets: 20 },
-    { name: 'Apr', tickets: 27 },
-    { name: 'May', tickets: 18 },
-    { name: 'Jun', tickets: 23 },
+// Fonction pour générer les données du graphique
+const generateChartData = (tickets) => {
+  // Grouper les tickets par mois
+  const monthlyData = tickets.reduce((acc, ticket) => {
+    const date = new Date(ticket.createdAt);
+    const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+    
+    if (!acc[monthYear]) {
+      acc[monthYear] = 0;
+    }
+    acc[monthYear]++;
+    
+    return acc;
+  }, {});
+
+  // Convertir en format adapté pour Recharts
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+  
+  const currentYear = new Date().getFullYear();
+  const last6Months = [];
+  
+  // Créer les 6 derniers mois
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    
+    const month = date.getMonth();
+    const year = date.getFullYear();
+    const key = `${year}-${month + 1}`;
+    
+    last6Months.push({
+      name: `${months[month]} ${year === currentYear ? '' : year}`,
+      tickets: monthlyData[key] || 0
+    });
+  }
+
+  return last6Months;
+};
+
+
+
+//
+  // Données pour le graphique
+  // const chartData = [
+  //   { name: 'Jan', tickets: 40 },
+  //   { name: 'Feb', tickets: 30 },
+  //   { name: 'Mar', tickets: 20 },
+  //   { name: 'Apr', tickets: 27 },
+  //   { name: 'May', tickets: 18 },
+  //   { name: 'Jun', tickets: 23 },
+  // ];
 
   // Statistiques
   const [stats, setStats] = useState([
@@ -76,8 +172,8 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         const [ticketsRes, usersRes] = await Promise.all([
-          fetch('http://192.168.1.89:8082/api/tickets'),
-          fetch('http://192.168.1.89:8082/api/utilisateurs'),
+          fetch('http://192.168.1.48:8082/api/tickets'),
+          fetch('http://192.168.1.48:8082/api/utilisateurs'),
         ]);
 
         const tickets = await ticketsRes.json();
@@ -96,6 +192,10 @@ const AdminDashboard = () => {
           { title: 'Résolus', value: resolus, icon: '✅', color: 'success' },
           { title: 'Utilisateurs', value: users.length, icon: '👥', color: 'info' },
         ]);
+      // Générer les données du graphique
+      setChartData(generateChartData(tickets));
+      setLoadingChart(false);
+
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques :', error);
       }
@@ -125,8 +225,12 @@ const AdminDashboard = () => {
   const loadTickets = async () => {
     try {
       const response = await api.getAllTicketsAdmin();
-      setTickets(response.data);
-      console.log("data:",response.data)
+      // Trier les tickets par date de création (du plus récent au plus ancien)
+      const sortedTickets = response.data.sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setTickets(sortedTickets);
+      console.log("data:", sortedTickets);
     } catch (error) {
       console.error("Error loading tickets:", error);
     }
@@ -171,11 +275,38 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    const matchesSearch = ticket.serialNumber.toLowerCase().includes(search.toLowerCase());
+  const filteredTickets = tickets
+  .filter(ticket => {
+    const matchesSearch = 
+      (searchTerm === '' || 
+       ticket.problemDescription.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (serialNumberSearch === '' || 
+       (ticket.serialNumber && ticket.serialNumber.toLowerCase().includes(serialNumberSearch.toLowerCase()))) &&
+      (bureauSearch === '' || 
+       (ticket.bureau && ticket.bureau.bureau.toLowerCase().includes(bureauSearch.toLowerCase()))) &&
+      (serviceSearch === '' || 
+       (ticket.service && ticket.service.name.toLowerCase().includes(serviceSearch.toLowerCase())));
+    
     const matchesFilter = filter === 'all' || ticket.status === filter;
+    
     return matchesSearch && matchesFilter;
-  });
+  })
+  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Tri supplémentaire pour les tickets filtrés
+
+
+
+
+  const [currentPage, setCurrentPage] = useState(1);
+const [itemsPerPage] = useState(10); // 10 éléments par page
+
+
+// Calcul des tickets pour la page courante
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentTickets = filteredTickets.slice(indexOfFirstItem, indexOfLastItem);
+const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+
+
   const userData = localStorage.getItem('user');
   const bureau_id = localStorage.getItem('bureau_id');
   const service_id = localStorage.getItem('service_id');
@@ -212,7 +343,7 @@ const AdminDashboard = () => {
 
     const handleDownloadReport = async (ticketId) => {
       try {
-        const response = await fetch(`http://192.168.1.89:8082/api/tickets/${ticketId}/rapport`, {
+        const response = await fetch(`http://192.168.1.48:8082/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf'
@@ -305,7 +436,7 @@ const AdminDashboard = () => {
               <ListItemIcon><TicketsIcon /></ListItemIcon>
               <ListItemText primary="Tickets" />
             </ListItem>
-            <ListItem button>
+            <ListItem button component="a" href="/user">
               <ListItemIcon><UsersIcon /></ListItemIcon>
               <ListItemText primary="Utilisateurs" />
             </ListItem>
@@ -347,15 +478,21 @@ const AdminDashboard = () => {
                   Tickets par mois
                 </Typography>
                 <ResponsiveContainer width="100%" height={300}>
+                {loadingChart ? (
+                  <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                    <CircularProgress />
+                  </Box>
+                ) : (
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
                     <RechartsTooltip />
                     <Legend />
-                    <Bar dataKey="tickets" fill="#8884d8" />
+                    <Bar dataKey="tickets" fill="#8884d8" name="Nombre de tickets" />
                   </BarChart>
-                </ResponsiveContainer>
+                )}
+              </ResponsiveContainer>
               </CardContent>
             </Card>
           </Grid>
@@ -395,35 +532,77 @@ const AdminDashboard = () => {
               </Button>
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <TextField
-                label="Rechercher"
-                variant="outlined"
-                size="small"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ flexGrow: 1 }}
-              />
-              
-              <FormControl sx={{ minWidth: 120 }} size="small">
-                <InputLabel>Statut</InputLabel>
-                <Select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  label="Statut"
-                >
-                  <MenuItem value="all">Tous</MenuItem>
-                  <MenuItem value="SI_SERVICE">Recu</MenuItem>
-                  <MenuItem value="EN_COURS">En cours</MenuItem>
-                  <MenuItem value="RESOLU">Résolu</MenuItem>
-                  <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <Button variant="outlined" startIcon={<FilterIcon />}>
-                Filtres
-              </Button>
-            </Box>
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+  {/* Recherche générale */}
+  <TextField
+    label="Recherche générale"
+    variant="outlined"
+    size="small"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    sx={{ flexGrow: 1, minWidth: 200 }}
+  />
+  
+  {/* Numéro de série */}
+  <TextField
+    label="Numéro de série"
+    variant="outlined"
+    size="small"
+    value={serialNumberSearch}
+    onChange={(e) => setSerialNumberSearch(e.target.value)}
+    sx={{ minWidth: 180 }}
+  />
+  
+  {/* Bureau */}
+  <TextField
+    label="Bureau"
+    variant="outlined"
+    size="small"
+    value={bureauSearch}
+    onChange={(e) => setBureauSearch(e.target.value)}
+    sx={{ minWidth: 180 }}
+  />
+  
+  {/* Service */}
+  <TextField
+    label="Service"
+    variant="outlined"
+    size="small"
+    value={serviceSearch}
+    onChange={(e) => setServiceSearch(e.target.value)}
+    sx={{ minWidth: 180 }}
+  />
+  
+  {/* Filtre par statut */}
+  <FormControl sx={{ minWidth: 180 }} size="small">
+    <InputLabel>Statut</InputLabel>
+    <Select
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      label="Statut"
+    >
+      <MenuItem value="all">Tous</MenuItem>
+      <MenuItem value="SI_SERVICE">Reçu</MenuItem>
+      <MenuItem value="EN_COURS">En cours</MenuItem>
+      <MenuItem value="RESOLU">Résolu</MenuItem>
+      <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
+    </Select>
+  </FormControl>
+  
+  <Button 
+    variant="outlined" 
+    startIcon={<FilterIcon />}
+    onClick={() => {
+      setSearchTerm('');
+      setSerialNumberSearch('');
+      setBureauSearch('');
+      setServiceSearch('');
+      setFilter('all');
+    }}
+  >
+    Réinitialiser
+  </Button>
+</Box>
 
             <TableContainer component={Paper}>
               <Table>
@@ -439,12 +618,14 @@ const AdminDashboard = () => {
                     <TableCell>Problème</TableCell>
                     <TableCell>Priorité</TableCell>
                     <TableCell>Statut</TableCell>
-                    <TableCell>Créé le</TableCell>
+                    <TableCell>Créé le
+                    <ArrowDownwardIcon fontSize="small" sx={{ verticalAlign: 'middle' }} />
+                    </TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-        {filteredTickets.map((ticket) => (
+        {currentTickets.map((ticket) => (
           <TableRow key={ticket.id} hover>
             <TableCell>{ticket.id}</TableCell>
             <TableCell>
@@ -520,11 +701,11 @@ const AdminDashboard = () => {
       </IconButton>
     </Tooltip>
 
-  <Tooltip title="Résoudre">
-    <IconButton onClick={() => handleUpdateStatus(ticket.id, 'RESOLU')}>
-      <ResolveIcon color="success" />
-    </IconButton>
-  </Tooltip>
+    <Tooltip title="Résoudre">
+      <IconButton onClick={() => handleResolveClick(ticket)}>
+        <ResolveIcon color="success" />
+      </IconButton>
+    </Tooltip>
 
   {/* ✅ Bouton de téléchargement */}
   <Tooltip title="Télécharger le rapport">
@@ -537,7 +718,7 @@ const AdminDashboard = () => {
           </TableRow>
         ))}
                 </TableBody>
-                 {/* Ajoutez ce dialogue à la fin de votre composant */}
+                 {/* Ajoutez ce dialogue à la fin de votre composant view */}
                  <Dialog 
   open={openDialog} 
   onClose={() => setOpenDialog(false)}
@@ -687,8 +868,81 @@ const AdminDashboard = () => {
     </Button>
   </DialogActions>
 </Dialog>
+
+{/* Ajoutez ce dialogue à la fin de votre composant Problème trouvé avant le resolution */}
+{/* Dialogue pour la résolution */}
+<Dialog 
+  open={resolveDialogOpen} 
+  onClose={() => setResolveDialogOpen(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle>Résoudre le Ticket #{ticketToResolve?.id}</DialogTitle>
+  <DialogContent dividers>
+    <Box>
+      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+        Informations de résolution
+      </Typography>
+
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="subtitle2">Problème trouvé</Typography>
+        <TextField
+          multiline
+          fullWidth
+          rows={3}
+          variant="outlined"
+          value={selectedTicket?.foundProblem || ''}
+          onChange={(e) =>
+            setSelectedTicket((prev) => ({
+              ...prev,
+              foundProblem: e.target.value,
+            }))
+          }
+        />
+      </Box>
+
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="subtitle2">Solution effectuée</Typography>
+        <TextField
+          multiline
+          fullWidth
+          rows={3}
+          variant="outlined"
+          value={selectedTicket?.appliedSolution || ''}
+          onChange={(e) =>
+            setSelectedTicket((prev) => ({
+              ...prev,
+              appliedSolution: e.target.value,
+            }))
+          }
+        />
+      </Box>
+    </Box>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setResolveDialogOpen(false)} color="primary">
+      Annuler
+    </Button>
+    <Button 
+      variant="contained" 
+      color="success" 
+      onClick={handleConfirmResolve}
+    >
+      Confirmer la résolution
+    </Button>
+  </DialogActions>
+</Dialog>
               </Table>
             </TableContainer>
+
+            {/* Pagination */}
+            <Pagination
+  count={totalPages}
+  page={currentPage}
+  onChange={(event, page) => setCurrentPage(page)}
+  color="primary"
+  sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
+/>
           </CardContent>
         </Card>
       </Box>

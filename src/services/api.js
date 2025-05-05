@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.89:8082/api/tickets';
-
+const API_URL = 'http://192.168.1.48:8082/api/tickets';
+const API_BASE_URL = 'http://192.168.1.48:8082/api/utilisateurs'; // à adapter selon ton backend
 const api = {
   // CRUD Operations
   getAllTickets: () => axios.get(API_URL),
@@ -35,7 +35,21 @@ updateTicketDepSI: (id) => axios.put(`${API_URL}/${id}/v-si-dep`),
   
   // Filter Operations
   filterByStatus: (status) => axios.get(`${API_URL}/status/${status}`),
-  filterByDepartment: (department) => axios.get(`${API_URL}/department/${department}`)
+  filterByDepartment: (department) => axios.get(`${API_URL}/department/${department}`),
+
+  // Récupérer tous les utilisateurs
+  getAllUsers: () => axios.get(`${API_BASE_URL}`),
+
+  // Créer un nouvel utilisateur
+  createUser: (userData) => axios.post(`${API_BASE_URL}`, userData),
+
+  // Mettre à jour un utilisateur existant
+  updateUser: (id, userData) => axios.put(`${API_BASE_URL}/${id}`, userData),
+
+  // Supprimer un utilisateur
+  deleteUser: (id) => axios.delete(`${API_BASE_URL}/${id}`)
+
+  
 };
 
 export default api;

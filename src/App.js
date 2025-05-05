@@ -9,6 +9,7 @@ import ChefDepV from './components/PagesProcessus/ChefDepV';
 import ChefDepSI from './components/PagesProcessus/ChefDepSI';
 import Login from './pages/Login';
 import PrivateRoute from './pages/PrivateRoute';
+import UserManagement from './components/UserManagement';
 function App() {
   return (
     <Router>
@@ -35,6 +36,7 @@ function App() {
           <Route path="/c-s-v" element={<PrivateRoute><ChefServiceList /></PrivateRoute>} />
           <Route path="/c-d-v" element={<PrivateRoute><ChefDepV /></PrivateRoute>} />
           <Route path="/c-d-si" element={<PrivateRoute><ChefDepSI /></PrivateRoute>} />
+          <Route path="/user" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
         </Routes>
       </Container>
     </Router>
