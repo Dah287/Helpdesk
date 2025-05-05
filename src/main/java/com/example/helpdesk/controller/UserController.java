@@ -1,8 +1,10 @@
 package com.example.helpdesk.controller;
 
 
-import com.example.helpdesk.entite.Role;
-import com.example.helpdesk.entite.User;
+import com.example.helpdesk.entite.*;
+import com.example.helpdesk.repository.BureauRepository;
+import com.example.helpdesk.repository.DepartmentRepository;
+import com.example.helpdesk.repository.ServiceRepository;
 import com.example.helpdesk.repository.UserRepository;
 import com.example.helpdesk.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +25,37 @@ public class UserController {
     private UserRepository userRepository;
 
     @Autowired
+    private BureauRepository bureauRepository;
+
+    @Autowired
+    private ServiceRepository serviceRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+
+    @Autowired
     private UserService userService;
     // Récupérer tous les tickets
+
+
+    @GetMapping("/bureaux")
+    public List <Bureau> getAllB() {
+        return bureauRepository.findAll();
+    }
+
+    @GetMapping("/services")
+    public List <Service> getAllS() {
+        return serviceRepository.findAll();
+    }
+    @GetMapping("/departments")
+    public List <Department> getAllD() {
+        return departmentRepository.findAll();
+    }
     @GetMapping
     public List <User> getAllUser() {
         return userRepository.findAll();
     }
-
 //    @GetMapping
 //    public ResponseEntity <List<User>> getAllUsers() {
 //        return ResponseEntity.ok(userService.getAllUsers());
