@@ -54,10 +54,10 @@ const ChefDepV = () => {
     setFilter(status);
     try {
       const response = status === 'all' 
-        ? await api.getAllTicketsDepV2()
-        : await api.getTicketsByStatus(status);
+        ? await api.getAllTicketsDepV2(parseddepartment_id.id)
+        : await api.getTicketsByStatus(status,parsedUser.username);
       setTickets(response.data);
-    } catch (error) {
+     } catch (error) {
       console.error("Error filtering tickets:", error);
     }
   };
@@ -78,6 +78,7 @@ const ChefDepV = () => {
       // (ticket.service?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.bureau?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.equipmentType || '').toLowerCase().includes(searchTerm) ||
+      (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
       (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
     );
   });
@@ -212,7 +213,7 @@ const navigate = useNavigate();
 </AppBar>
 
 
-<Box sx={{ p: 3, width: 'calc(130% - 240px)', marginTop: '64px' }}>
+<Box sx={{ p: 3, width: 'calc(180%  - 240px)', marginTop: '64px' }}>
       <Typography variant="h4" gutterBottom>
       Chef Dep  Validation
       </Typography>
@@ -228,17 +229,19 @@ const navigate = useNavigate();
         </Button>
         
         <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel>Statut</InputLabel>
-          <Select
-            value={filter}
-            onChange={(e) => handleFilter(e.target.value)}
-            label="Statut"
-          >
+            <InputLabel>Statut</InputLabel>
+            <Select
+              value={filter}
+              onChange={(e) => handleFilter(e.target.value)}
+              label="Statut"
+            >
               <MenuItem value="all">Tous</MenuItem>    
-                  <MenuItem value="EN_COURS">En cours</MenuItem>
-                  <MenuItem value="RESOLU">Résolu</MenuItem>
-          </Select>
-        </FormControl>
+              <MenuItem value="#">Reçu Par SI</MenuItem>
+              <MenuItem value="#">En cours</MenuItem>
+              <MenuItem value="#">Résolu</MenuItem>
+              <MenuItem value="#">Société de maintenance</MenuItem>
+            </Select>
+          </FormControl>
         
         <TextField
           label="Rechercher"

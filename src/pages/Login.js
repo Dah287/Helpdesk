@@ -23,27 +23,29 @@ const Login = () => {
     
     try {
 
-      const response = await axios.post('http://192.168.1.35:8082/api/auth/login', {
+      const response = await axios.post('http://192.168.1.27:8082/api/auth/login', {
         matricule,
         password
       });
-      console.log(response.data.role);  // Affiche la réponse complète
+      console.log(response.data.user.role);  // Affiche la réponse complète
       // Stockage du token et des infos utilisateur
-     // localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user_id', JSON.stringify(response.data.id));
-      localStorage.setItem('department_id', JSON.stringify(response.data.department));
-      localStorage.setItem('service_id', JSON.stringify(response.data.service));
-      localStorage.setItem('bureau_id', JSON.stringify(response.data.bureau));
-      localStorage.setItem('user', JSON.stringify(response.data));
+     // localStorage.setItem('token', response.data.user.token);
+     localStorage.setItem('token', response.data.token);
+     console.log('token :',response.data.token);
+      localStorage.setItem('user_id', JSON.stringify(response.data.user.id));
+      localStorage.setItem('department_id', JSON.stringify(response.data.user.department));
+      localStorage.setItem('service_id', JSON.stringify(response.data.user.service));
+      localStorage.setItem('bureau_id', JSON.stringify(response.data.user.bureau));
+      localStorage.setItem('user', JSON.stringify(response.data.user));
 
 
       // 
 
       
       
-      console.log("dep :",response.data.department.id)
+      console.log("dep :",response.data.user.department.id)
       // Redirection basée sur le rôle
-      switch(response.data.role) {
+      switch(response.data.user.role) {
         case 'ADMIN':
           navigate('/admin');
           break;
@@ -65,7 +67,7 @@ const Login = () => {
       
     }catch (err) {
         console.log(err); // Log des erreurs pour mieux comprendre ce qui se passe
-        setError(err.response?.data?.message || 'Matricule ou mot de passe incorrect');
+        setError(err.response?.data.user?.message || 'Matricule ou mot de passe incorrect');
       }
        finally {
       setLoading(false);

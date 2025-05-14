@@ -122,12 +122,15 @@ useEffect(() => {
       const admins = response.data.filter(u => u.role === 'ADMIN').length;
       const techs = response.data.filter(u => u.role === 'CHEF_SI').length;
       const standards = response.data.filter(u => u.role === 'CHEF_BUR').length;
+      const nbrchefdep = response.data.filter(u => u.role === 'CHEF_DEP' || u.role === 'CHEF_DEP_SI').length;      
       
       setStats([
+
+
         { title: 'Total Utilisateurs', value: total, icon: '👥', color: 'info' },
-        { title: 'Administrateurs', value: admins, icon: '👑', color: 'primary' },
-        { title: 'chef de Service', value: techs, icon: '🔧', color: 'warning' },
-        { title: 'chef de bureau', value: standards, icon: '👤', color: 'success' },
+        { title: 'Chef de Bureaux', value: standards, icon: '👤', color: 'primary' },
+        { title: 'Chef de Services', value: techs, icon: '👤', color: 'warning' },
+        { title: 'Chef de Département', value: nbrchefdep, icon: '👤', color: 'success' },
       ]);
       
       setLoading(false);
@@ -379,9 +382,9 @@ useEffect(() => {
                 >
                   <MenuItem value="all">Tous les rôles</MenuItem>
                   <MenuItem value="ADMIN">Administrateur</MenuItem>
-                  <MenuItem value="CHEF_DEP">chef de département</MenuItem>
-                  <MenuItem value="CHEF_SI">chef de Service</MenuItem>
-                  <MenuItem value="CHEF_BUR">chef de Bureau</MenuItem>
+                  <MenuItem value="CHEF_DEP">Chef de département</MenuItem>
+                  <MenuItem value="CHEF_SI">Chef de Service</MenuItem>
+                  <MenuItem value="CHEF_BUR">Chef de Bureau</MenuItem>
                 </Select>
               </FormControl>
             </Box>

@@ -159,7 +159,7 @@ const generateChartData = (tickets) => {
     { title: 'En Cours', value: 0, icon: '⏳', color: 'warning' },
     { title: 'Transmettre à la société de maintenance', value: 0, icon: '🚚', color: 'primary' }, // Ajout ici
     { title: 'Résolus', value: 0, icon: '✅', color: 'success' },
-    { title: 'Utilisateurs', value: 0, icon: '👥', color: 'info' },
+
    ]);
 
   useEffect(() => {
@@ -171,38 +171,52 @@ const generateChartData = (tickets) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('token'); // 👈 récupération du token
+        if (!token) {
+          console.error("Token manquant !");
+          return;
+        }
+  
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+  
         const [ticketsRes, usersRes] = await Promise.all([
-          fetch('http://192.168.1.35:8082/api/tickets'),
-          fetch('http://192.168.1.35:8082/api/utilisateurs'),
+          fetch('http://192.168.1.27:8082/api/tickets', { headers }),
+          fetch('http://192.168.1.27:8082/api/utilisateurs', { headers }),
         ]);
-
+  
+        console.log("ticketsRes :", ticketsRes);
+        console.log("usersRes :", usersRes);
+  
         const tickets = await ticketsRes.json();
         const users = await usersRes.json();
-
+  
         const total = tickets.length;
         const ouverts = tickets.filter(t => t.status === 'SI_SERVICE').length;
         const encours = tickets.filter(t => t.status === 'EN_COURS').length;
-        const resolus = tickets.filter(t => t.status === 'RESOLU' ).length;
-        const transm = tickets.filter(t => t.status === 'TRANS_SM' ).length;
-
+        const resolus = tickets.filter(t => t.status === 'RESOLU').length;
+        const transm = tickets.filter(t => t.status === 'TRANS_SM').length;
+  
         setStats([
           { title: 'Tickets Ouverts', value: ouverts, icon: '📋', color: 'primary' },
           { title: 'En Cours', value: encours, icon: '⏳', color: 'warning' },
           { title: 'Transmettre à la société de maintenance', value: transm, icon: '🚚', color: 'primary' },
           { title: 'Résolus', value: resolus, icon: '✅', color: 'success' },
-          { title: 'Utilisateurs', value: users.length, icon: '👥', color: 'info' },
+     
         ]);
-      // Générer les données du graphique
-      setChartData(generateChartData(tickets));
-      setLoadingChart(false);
-
+  
+        setChartData(generateChartData(tickets));
+        setLoadingChart(false);
+  
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques :', error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
 
   const handleInputChange = async () => {
@@ -340,13 +354,14 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       navigate('/');
     };
 
-
     const handleDownloadReport = async (ticketId) => {
       try {
-        const response = await fetch(`http://192.168.1.35:8082/api/tickets/${ticketId}/rapport`, {
+        const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
+        const response = await fetch(`http://192.168.1.27:8082/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
-            'Accept': 'application/pdf'
+            'Accept': 'application/pdf',
+            'Authorization': `Bearer ${token}`
           }
         });
     
@@ -373,7 +388,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 
   return (
-    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)' }}>
+    <Box sx={{ display: 'flex',width: 'calc(180% - 10px)' }}>
       <CssBaseline />
       
       {/* Barre de navigation */}
@@ -432,14 +447,19 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
+            <ListItem button component="a" href="/admin" sx={{ color: 'inherit', textDecoration: 'none' }}>
+            <ListItemIcon><UsersIcon /></ListItemIcon>
+            <ListItemText primary="Dashboard" />
+          </ListItem>
             <ListItem button>
               <ListItemIcon><TicketsIcon /></ListItemIcon>
               <ListItemText primary="Tickets" />
             </ListItem>
-            <ListItem button component="a" href="/user">
-              <ListItemIcon><UsersIcon /></ListItemIcon>
-              <ListItemText primary="Utilisateurs" />
-            </ListItem>
+            <ListItem button component="a" href="/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
+            <ListItemIcon><UsersIcon /></ListItemIcon>
+            <ListItemText primary="Utilisateurs" />
+          </ListItem>
+
             <ListItem button>
               <ListItemIcon><SettingsIcon /></ListItemIcon>
               <ListItemText primary="Paramètres" />
@@ -454,7 +474,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 {/* Section Statistiques */}
 <Grid container spacing={3} sx={{ mb: 3 }}>
   {stats.map((stat, index) => (
-    <Grid item xs={12} sm={6} md={2.4} key={index}> {/* Modification de md à 2.4 */}
+    <Grid item xs={12} sm={6} md={3} key={index}> {/* Modification de md à 2.4 */}
       <Card sx={{ backgroundColor: `${stat.color}.light` }}>
         <CardContent>
           <Typography variant="h5" component="div">
@@ -633,7 +653,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
               {ticket.serialNumber|| '-'}
               </Typography>
               </TableCell>
-            <TableCell>{ticket.createdBy?.username}</TableCell>
+              <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
             <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
             <TableCell>{ticket.service?.name || '-'}</TableCell>
             <TableCell>{ticket.department?.name}</TableCell>

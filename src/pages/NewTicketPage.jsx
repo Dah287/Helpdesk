@@ -33,7 +33,7 @@ const TicketFormPage = () => {
     if (bureauId === 10 && serviceId === 10 && parsedUser.role !== "CHEF_DEP_SI" ) {
       status = 'SI_SERVICE';
     } else if (bureauId === 10 && serviceId !== 10) {
-      status = 'SERVICE_VALIDATED';
+      status = 'SI_SERVICE';
     }
     // else if (parsedUser.role === "CHEF_DEP_SI") {
     //   status = 'SI_SERVICE';

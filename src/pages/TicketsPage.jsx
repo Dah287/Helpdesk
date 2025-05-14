@@ -66,9 +66,9 @@ const parsedUser = userData ? JSON.parse(userData) : null;
     try {
       const response = status === 'all' 
         ? await api.getByUserName(parsedUser.username)
-        : await api.getTicketsByStatus(status);
+        : await api.getTicketsByStatus(status,parsedUser.username);
       setTickets(response.data);
-    } catch (error) {
+     } catch (error) {
       console.error("Error filtering tickets:", error);
     }
   };
@@ -166,7 +166,7 @@ const navigate = useNavigate();
       </AppBar>
 
       {/* Main content */}
-      <Box sx={{ p: 3, width: 'calc(150% - 240px)', marginTop: '64px' }}>
+      <Box sx={{ p: 3, width: 'calc(180% - 240px)', marginTop: '64px' }}>
         <Typography variant="h4" gutterBottom>
           Gestion des Tickets
         </Typography>
@@ -189,8 +189,10 @@ const navigate = useNavigate();
               label="Statut"
             >
               <MenuItem value="all">Tous</MenuItem>    
-                  <MenuItem value="EN_COURS">En cours</MenuItem>
-                  <MenuItem value="RESOLU">Résolu</MenuItem>
+              <MenuItem value="SI_SERVICE">Reçu Par SI</MenuItem>
+              <MenuItem value="EN_COURS">En cours</MenuItem>
+              <MenuItem value="RESOLU">Résolu</MenuItem>
+              <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
             </Select>
           </FormControl>
           

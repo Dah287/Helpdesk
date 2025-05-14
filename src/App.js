@@ -37,6 +37,7 @@ function App() {
           <Route path="/c-d-v" element={<PrivateRoute><ChefDepV /></PrivateRoute>} />
           <Route path="/c-d-si" element={<PrivateRoute><ChefDepSI /></PrivateRoute>} />
           <Route path="/user" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
+          <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
         </Routes>
       </Container>
     </Router>

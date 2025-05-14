@@ -1,60 +1,86 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.35:8082/api/tickets';
-const API_BASE_URL = 'http://192.168.1.35:8082/api/utilisateurs'; // à adapter selon ton backend
+// Configuration de base
+const API_BASE_URL = 'http://192.168.1.27:8082/api'; // URL de base
 
+// ➕ Création d'une instance Axios personnalisée
+const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+// ➕ Intercepteur pour ajouter le token à chaque requête
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    console.log("Token utilisé :", token); // 👈 Ajout du log
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log("Token utilisé2 :", config.headers.Authorization); // 👈 Ajout du log
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+
+// ➕ Intercepteur pour gérer les erreurs globales
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Gérer la déconnexion si le token est invalide
+      localStorage.removeItem('token');
+      window.location.href = '/login'; // Rediriger vers la page de login
+    }
+    return Promise.reject(error);
+  }
+);
 
 const api = {
   // CRUD Operations
-  getAllTickets: () => axios.get(API_URL),
-  getAllTicketsAdmin: () => axios.get(`${API_URL}/by-status`),
-  // getTicketsByStatus: () => axios.get(`${API_URL}/by-status`),
-  getByUserName: (username) => axios.get(`${API_URL}/assigned-to/${username}`),
-  getTicket: (id) => axios.get(`${API_URL}/${id}`),
-  createTicket: (ticket) => axios.post(API_URL, ticket),
-  updateTicket: (id, ticket) => axios.put(`${API_URL}/${id}`, ticket),
-  deleteTicket: (id) => axios.delete(`${API_URL}/${id}`),
-  updateTicketStatus: (id, newStatus) => axios.put(`${API_URL}/updateTicketStatus/${id}`, { status: newStatus }),
-//
-getAllTicketsService: (id,userId) => axios.get(`${API_URL}/tickets-chef-service-validation/${id}/${userId}`),
-getAllTicketsDepV: (id,userId) => axios.get(`${API_URL}/tickets-chef-Dep-validation/${id}/${userId}`),
-getAllTicketsDepSI: () => axios.get(`${API_URL}/tickets-chef-Dep-SI`),
-//
-getAllTicketsService2: (id,serviceId) => axios.get(`${API_URL}/tickets-chef-service-validation2/${id}/${serviceId}`),
-getAllTicketsDepV2: (id) => axios.get(`${API_URL}/tickets-chef-Dep-validation2/${id}`),
+  getAllTickets: () => axiosInstance.get('/tickets'),
+  getAllTicketsAdmin: () => axiosInstance.get('/tickets/by-status'),
+  getByUserName: (username) => axiosInstance.get(`/tickets/assigned-to/${username}`),
+  getTicket: (id) => axiosInstance.get(`/tickets/${id}`),
+  createTicket: (ticket) => axiosInstance.post('/tickets', ticket),
+  updateTicket: (id, ticket) => axiosInstance.put(`/tickets/${id}`, ticket),
+  deleteTicket: (id) => axiosInstance.delete(`/tickets/${id}`),
+  updateTicketStatus: (id, newStatus) => axiosInstance.put(`/tickets/updateTicketStatus/${id}`, { status: newStatus }),
 
-//
-updateTicketService: (id) => axios.put(`${API_URL}/${id}/v-service`),
-validateService: (id) => axios.put(`${API_URL}/${id}/date-validate-service`),
-validateDep: (id) => axios.put(`${API_URL}/${id}/date-validate-dep`),
-validateSI: (id) => axios.put(`${API_URL}/${id}/date-validate-si`),
-updateTicketDepV: (id) => axios.put(`${API_URL}/${id}/v-dep`),
-updateTicketDepSI: (id) => axios.put(`${API_URL}/${id}/v-si-dep`),
+  // Tickets par service/département
+  getAllTicketsService: (id, userId) => axiosInstance.get(`/tickets/tickets-chef-service-validation/${id}/${userId}`),
+  getAllTicketsDepV: (id, userId) => axiosInstance.get(`/tickets/tickets-chef-Dep-validation/${id}/${userId}`),
+  getAllTicketsDepSI: () => axiosInstance.get('/tickets/tickets-chef-Dep-SI'),
+  getAllTicketsService2: (id, serviceId) => axiosInstance.get(`/tickets/tickets-chef-service-validation2/${id}/${serviceId}`),
+  getAllTicketsDepV2: (id) => axiosInstance.get(`/tickets/tickets-chef-Dep-validation2/${id}`),
 
-  //
-  updateTicketFields: (id, ticket) => axios.put(`${API_URL}/updateTicketFields/${id}`, ticket),
-  //
-  
-  // Filter Operations
-  filterByStatus: (status) => axios.get(`${API_URL}/status/${status}`),
-  filterByDepartment: (department) => axios.get(`${API_URL}/department/${department}`),
+  // Validations
+  updateTicketService: (id) => axiosInstance.put(`/tickets/${id}/v-service`),
+  validateService: (id) => axiosInstance.put(`/tickets/${id}/date-validate-service`),
+  validateDep: (id) => axiosInstance.put(`/tickets/${id}/date-validate-dep`),
+  validateSI: (id) => axiosInstance.put(`/tickets/${id}/date-validate-si`),
+  updateTicketDepV: (id) => axiosInstance.put(`/tickets/${id}/v-dep`),
+  updateTicketDepSI: (id) => axiosInstance.put(`/tickets/${id}/v-si-dep`),
 
-  // Récupérer tous les utilisateurs
-  getAllUsers: () => axios.get(`${API_BASE_URL}`),
+  // Autres opérations
+  updateTicketFields: (id, ticket) => axiosInstance.put(`/tickets/updateTicketFields/${id}`, ticket),
+  filterByStatus: (status) => axiosInstance.get(`/tickets/status/${status}`),
+  filterByDepartment: (department) => axiosInstance.get(`/tickets/department/${department}`),
+// filtre status et username
+getTicketsByStatus: (status,username) => axiosInstance.get(`/tickets/status/${status}/${username}`),
+  // Utilisateurs
+  getAllUsers: () => axiosInstance.get('/utilisateurs'),
+  createUser: (userData) => axiosInstance.post('/utilisateurs', userData),
+  updateUser: (id, userData) => axiosInstance.put(`/utilisateurs/${id}`, userData),
+  deleteUser: (id) => axiosInstance.delete(`/utilisateurs/${id}`),
 
-  // Créer un nouvel utilisateur
-  createUser: (userData) => axios.post(`${API_BASE_URL}`, userData),
-
-  // Mettre à jour un utilisateur existant
-  updateUser: (id, userData) => axios.put(`${API_BASE_URL}/${id}`, userData),
-
-  // Supprimer un utilisateur
-  deleteUser: (id) => axios.delete(`${API_BASE_URL}/${id}`),
-
-    // New Methods for Bureaux, Services and Departments
-    getAllBureaux: () => axios.get(`${API_BASE_URL}/bureaux`),
-    getAllServices: () => axios.get(`${API_BASE_URL}/services`),
-    getAllDepartments: () => axios.get(`${API_BASE_URL}/departments`),
+  // Bureaux, Services et Départements
+  getAllBureaux: () => axiosInstance.get('/utilisateurs/bureaux'),
+  getAllServices: () => axiosInstance.get('/utilisateurs/services'),
+  getAllDepartments: () => axiosInstance.get('/utilisateurs/departments'),
 };
 
 export default api;
