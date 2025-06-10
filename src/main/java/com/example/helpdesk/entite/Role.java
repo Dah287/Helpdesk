@@ -6,5 +6,8 @@ public enum Role {
     CHEF_SI,
     CHEF_DEP,
     CHEF_BUR,
-    CHEF_DEP_SI
+    CHEF_DEP_SI,
+    NORMALE,
+    Secretaire,
+    NORMALE_ALL
 }

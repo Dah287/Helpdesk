@@ -5,6 +5,7 @@ public enum TicketStatus {
     DEPT_VALIDATED,// Validé par le chef de département
     SI_DEPT_VALIDATED, // Validé par le chef de département
     SI_SERVICE,
+    BUREAU_VALIDATED,
     EN_COURS,
     RESOLU,
     TRANS_SM

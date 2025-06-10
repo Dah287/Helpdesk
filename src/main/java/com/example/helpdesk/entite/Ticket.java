@@ -41,6 +41,9 @@ public class Ticket {
     @Column(name = "dateValidationService")
     private Date dateValidationService;
 
+    @Column(name = "dateValidationBureau")
+    private Date dateValidationBureau;
+
     @Column(name = "foundProblem")
     private String foundProblem;
     @Column(name = "appliedSolution")
@@ -205,6 +208,16 @@ public class Ticket {
     public void setDateValidationService(Date dateValidationService) {
         this.dateValidationService = dateValidationService;
     }
+
+    //
+    public Date getDateValidationBureau() {
+        return dateValidationBureau;
+    }
+
+    public void setDateValidationBureau(Date dateValidationService) {
+        this.dateValidationBureau = dateValidationService;
+    }
+    //
 
     public Date getDateValidationDep() {
         return dateValidationDep;

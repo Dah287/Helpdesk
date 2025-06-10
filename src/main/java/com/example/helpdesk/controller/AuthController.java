@@ -1,5 +1,6 @@
 package com.example.helpdesk.controller;
 
+import com.example.helpdesk.config.JwtUtil;
 import com.example.helpdesk.entite.User;
 import com.example.helpdesk.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -14,13 +15,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.1.34:3000"}, maxAge = 3600, allowCredentials = "true")
 public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    @PostMapping("/login1")
+    public ResponseEntity<?> login1(@RequestBody LoginRequest request) {
         Optional<User> optionalUser = userRepository.findByMatricule(request.getMatricule());
 
         if (optionalUser.isEmpty()) {
@@ -77,4 +78,45 @@ public class AuthController {
             this.message = message;
         }
     }
+
+
+
+    @Autowired
+    private JwtUtil  jwtUtil;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        Optional<User> optionalUser = userRepository.findByMatricule(request.getMatricule());
+
+        if (optionalUser.isEmpty() || !optionalUser.get().getPassword().equals(request.getPassword())) {
+            return ResponseEntity.status(401).body(new ErrorResponse("Matricule ou mot de passe incorrect"));
+        }
+
+        User user = optionalUser.get();
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+
+        return ResponseEntity.ok(new AuthResponse(token, user));
+    }
+
+    public class AuthResponse {
+        private String token;
+        private User user;
+
+        // ✅ Constructeur complet
+        public AuthResponse(String token, User user) {
+            this.token = token;
+            this.user = user;
+        }
+
+        // ✅ Getters obligatoires pour Jackson
+        public String getToken() {
+            return token;
+        }
+
+        public User getUser() {
+            return user;
+        }
+    }
+
+
 }

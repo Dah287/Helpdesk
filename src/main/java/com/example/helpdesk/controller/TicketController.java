@@ -15,9 +15,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin("*")
+
 @RestController
 @RequestMapping("/api/tickets")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.1.34:3000"}, maxAge = 3600, allowCredentials = "true")
 public class TicketController {
 
     @Autowired
@@ -110,6 +111,13 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketsByStatus(status));
     }
 
+
+    // Endpoints spécifiques et id
+    @GetMapping("/status/{status}/{username}")
+    public ResponseEntity<List<Ticket>> getTicketsByStatus1(@PathVariable TicketStatus status,@PathVariable String username) {
+        return ResponseEntity.ok(ticketService.getTicketsByStatus1(status,username));
+    }
+
     @GetMapping("/priority/{priority}")
     public ResponseEntity<List<Ticket>> getTicketsByPriority(@PathVariable Priority priority) {
         return ResponseEntity.ok(ticketService.getTicketsByPriority(priority));
@@ -145,6 +153,17 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    @PutMapping("/{id}/date-validate-bureau")
+    public ResponseEntity<Ticket> updateDateValidationBureau(@PathVariable Long id) {
+        try {
+            Ticket ticket = ticketService.updatedateValidationBureau(id, new Date());
+            return ResponseEntity.ok(ticket);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
     @PutMapping("/{id}/date-validate-dep")
     public ResponseEntity<Ticket> updatedateValidationDep(@PathVariable Long id) {
         try {
@@ -193,6 +212,13 @@ public class TicketController {
             @PathVariable Long serviceId) {
         return ticketService.getTicketsByDepartmentAndStatus_SV2(departmentId,serviceId);
     }
+    //Récupère2 les tickets pour un département et statut donnés
+    @GetMapping("/tickets-chef-bureau-validation2/{departmentId}/{bureauId}")
+    public List<Ticket> getTicketsByDeptAndStatus_BV2(
+            @PathVariable Long departmentId,
+            @PathVariable Long bureauId) {
+        return ticketService.getTicketsByDepartmentAndStatus_BV2(departmentId,bureauId);
+    }
     //Récupère les tickets pour un département et statut donnés
     @GetMapping("/tickets-chef-Dep-validation/{departmentId}/{userId}")
     public List<Ticket> getTicketsByDeptAndStatus_DV(
@@ -217,6 +243,14 @@ public class TicketController {
     // validation service
     @PutMapping("/{id}/v-service")
     public ResponseEntity<Ticket> validationService(@PathVariable Long id) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+        ticket.setStatus(TicketStatus.SI_SERVICE);
+        return ResponseEntity.ok(ticketRepository.save(ticket));
+    }
+
+    // validation service
+    @PutMapping("/{id}/v-bureau")
+    public ResponseEntity<Ticket> validationBureau(@PathVariable Long id) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow();
         ticket.setStatus(TicketStatus.SI_SERVICE);
         return ResponseEntity.ok(ticketRepository.save(ticket));

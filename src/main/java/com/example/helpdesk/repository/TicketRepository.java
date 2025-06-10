@@ -11,6 +11,7 @@ public interface TicketRepository extends JpaRepository <Ticket , Long> {
     List<Ticket> findByServiceId(Long serviceId);
     List<Ticket> findByCreatedById(Long userId);
     List<Ticket> findByStatus(TicketStatus status);
+    List<Ticket> findByStatusAndCreatedBy(TicketStatus status,User user);
     List<Ticket> findByPriority(Priority priority);
     List<Ticket> findByCreatedBy(User createdBy);
     List<Ticket> findByDepartmentAndStatus(Department department, TicketStatus status);
@@ -19,6 +20,7 @@ public interface TicketRepository extends JpaRepository <Ticket , Long> {
 
     List<Ticket> findByDepartmentAndStatusOrCreatedBy(Department department, TicketStatus status,User user);
     List<Ticket> findByDepartmentAndStatusOrService(Department department, TicketStatus status,Service serviceId);
+    List<Ticket> findByDepartmentAndStatusOrBureau(Department department, TicketStatus status,Bureau bureauId);
 
     List<Ticket> findByDepartmentAndStatusOrDepartment(Department department, TicketStatus status,Department department2);
 

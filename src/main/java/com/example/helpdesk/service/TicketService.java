@@ -56,6 +56,9 @@ public class TicketService {
     @Autowired
     private ServiceRepository serviceRepository;
 
+    @Autowired
+    private BureauRepository bureauRepository;
+
     // Créer un nouveau ticket
     public Ticket createTicket(Ticket ticket) {
         // Vous pouvez ajouter une logique métier ici avant la sauvegarde
@@ -82,7 +85,21 @@ public class TicketService {
         if (optionalTicket.isPresent()) {
             Ticket ticket = optionalTicket.get();
 
-            ticket.setDateValidationService(newStatus);
+            ticket.setDateValidationBureau(newStatus);
+            return ticketRepository.save(ticket);
+        } else {
+            throw new Exception("Ticket not found");
+        }
+    }
+
+    // update dateValidationService
+    public Ticket updatedateValidationBureau(Long id, Date newStatus) throws Exception {
+        Optional<Ticket> optionalTicket = ticketRepository.findById(id);
+
+        if (optionalTicket.isPresent()) {
+            Ticket ticket = optionalTicket.get();
+
+            ticket.setDateValidationBureau(newStatus);
             return ticketRepository.save(ticket);
         } else {
             throw new Exception("Ticket not found");
@@ -160,6 +177,12 @@ public class TicketService {
         return ticketRepository.findByStatus(status);
     }
 
+    // Méthodes spécifiques status et username
+    public List<Ticket> getTicketsByStatus1(TicketStatus status,String username) {
+        User user = userService.getUserByUsername(username);
+        return ticketRepository.findByStatusAndCreatedBy(status,user);
+    }
+
     public List<Ticket> getTicketsByPriority(Priority priority) {
         return ticketRepository.findByPriority(priority);
     }
@@ -218,6 +241,19 @@ public class TicketService {
 //        User user = userRepository.findById(userId)
 //                .orElseThrow(() -> new RuntimeException("User non trouvé"));
         return ticketRepository.findByDepartmentAndStatusOrService(department, TicketStatus.SERVICE_VALIDATED,service);
+    }
+
+    //Récupère les tickets pour"chef de bureau validation " un département et statut donnés
+    public List<Ticket> getTicketsByDepartmentAndStatus_BV2(Long departmentId,Long bureauId) {
+        Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new RuntimeException("Département non trouvé"));
+
+        com.example.helpdesk.entite.Bureau bureau = bureauRepository.findById(bureauId)
+                .orElseThrow(() -> new RuntimeException("bureau non trouvé"));
+
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new RuntimeException("User non trouvé"));
+        return ticketRepository.findByDepartmentAndStatusOrBureau(department, TicketStatus.BUREAU_VALIDATED, bureau);
     }
 
     //Récupère les tickets pour"chef de service validation " un département et statut donnés
@@ -397,15 +433,15 @@ public class TicketService {
 
             // === SECTION : Détails de Création ===
             document.add(new Paragraph("Détails de Création").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
-            document.add(new Paragraph("Créé par : " + ticket.getCreatedBy().getUsername()));
+            document.add(new Paragraph("Créé par : " + ticket.getCreatedBy().getNom() + " " + ticket.getCreatedBy().getPrenom()));
             document.add(new Paragraph("Date de création : " + ticket.getCreatedAt()));
-            document.add(new Paragraph("Dernière modification : " + ticket.getUpdatedAt()));
+        //    document.add(new Paragraph("Dernière modification : " + ticket.getUpdatedAt()));
 
             // === SECTION : Workflow de Validation ===
-            document.add(new Paragraph("Workflow de Validation").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
-            document.add(new Paragraph("Chef de Service : Validé le " + ticket.getDateValidationService()));
-            document.add(new Paragraph("Chef de Département : Validé le " + ticket.getDateValidationDep()));
-            document.add(new Paragraph("Service Informatique : Résolu le " + ticket.getDateResoluSI()));
+            //document.add(new Paragraph("Workflow de Validation").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
+            //document.add(new Paragraph("Chef de Service : Validé le " + ticket.getDateValidationService()));
+            //document.add(new Paragraph("Chef de Département : Validé le " + ticket.getDateValidationDep()));
+            //document.add(new Paragraph("Service Informatique : Résolu le " + ticket.getDateResoluSI()));
 
             // === SECTION : Résolution ===
             document.add(new Paragraph("Résolution").setBold().setFontSize(14).setUnderline().setMarginBottom(10));
@@ -414,7 +450,7 @@ public class TicketService {
 
 
             // --- Signature et Date en bas à droite ---
-            Paragraph signature = new Paragraph("Signature : ................................");
+            Paragraph signature = new Paragraph("Signature : ...........................................");
             Paragraph date = new Paragraph("Date : " + java.time.LocalDate.now());
 
             // Créer une table pour aligner la signature et la date à droite
