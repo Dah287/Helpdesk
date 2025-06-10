@@ -293,29 +293,31 @@ useEffect(() => {
         sx={{
           width: 240,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+          [`& .MuiDrawer-paper`]: { width: 190, boxSizing: 'border-box' },
         }}
       >
         <Toolbar />
         <Box sx={{ overflow: 'auto' }}>
-          <List>
-            <ListItem button onClick={() => navigate('/admin/dashboard')}>
-              <ListItemIcon><DashboardIcon /></ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItem>
-            <ListItem button onClick={() => navigate('/admin/tickets')}>
-              <ListItemIcon><TicketsIcon /></ListItemIcon>
-              <ListItemText primary="Tickets" />
-            </ListItem>
-            <ListItem button selected>
-              <ListItemIcon><UsersIcon /></ListItemIcon>
-              <ListItemText primary="Utilisateurs" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon><SettingsIcon /></ListItemIcon>
-              <ListItemText primary="Paramètres" />
-            </ListItem>
-          </List>
+        <List>
+
+<ListItem button component="a" href="/admin/Dashboard" sx={{ color: 'inherit', textDecoration: 'none' }}>
+<ListItemIcon><UsersIcon /></ListItemIcon>
+<ListItemText primary="Dashboard" />
+</ListItem>
+<ListItem button component="a" href="/admin/Tickets" sx={{ color: 'inherit', textDecoration: 'none' }}>
+  <ListItemIcon><TicketsIcon /></ListItemIcon>
+  <ListItemText primary="Tickets" />
+</ListItem>
+<ListItem button component="a" href="/admin/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
+<ListItemIcon><UsersIcon /></ListItemIcon>
+<ListItemText primary="Utilisateurs" />
+</ListItem>
+
+<ListItem button>
+  <ListItemIcon><SettingsIcon /></ListItemIcon>
+  <ListItemText primary="Paramètres" />
+</ListItem>
+</List>
         </Box>
       </Drawer>
 
@@ -382,10 +384,13 @@ useEffect(() => {
                 >
                   <MenuItem value="all">Tous les rôles</MenuItem>
                   <MenuItem value="ADMIN">Administrateur</MenuItem>
-                  <MenuItem value="CHEF_DEP">Chef de département</MenuItem>
+                  <MenuItem value="CHEF_DEP">Chef de Département</MenuItem>
                   <MenuItem value="CHEF_SI">Chef de Service</MenuItem>
                   <MenuItem value="CHEF_BUR">Chef de Bureau</MenuItem>
+                  <MenuItem value="Secretaire">Secrétaire</MenuItem>
+                  <MenuItem value="NORMALE">Agent</MenuItem>
                 </Select>
+
               </FormControl>
             </Box>
 
@@ -424,18 +429,30 @@ useEffect(() => {
                         <TableCell>{user.matricule|| '-'}</TableCell>
                         {/* <TableCell>{user.email|| '-'}</TableCell> */}
                         <TableCell>
-                          <Chip 
-                            label={
-                              user.role === 'ADMIN' ? 'Administrateur' :
-                              user.role === 'CHEF_DEP' ? 'Chef de Département' : 
-                               user.role === 'CHEF_SI' ? 'Chef de Service' : 'chef de bureau'
-                            }
-                            color={
-                              user.role === 'ADMIN' ? 'primary' :
-                              user.role === 'TECH' ? 'warning' : 'default'
-                            }
-                            size="small"
-                          />
+                        <Chip
+                          label={
+                            user.role === 'ADMIN' ? 'Administrateur' :
+                            (user.role === 'CHEF_DEP'|| user.role === 'CHEF_DEP_SI' )? 'Chef de Département' :
+                            user.role === 'CHEF_SI' ? 'Chef de Service' :
+                            user.role === 'CHEF_BUR' ? 'Chef de Bureau' :
+                            user.role === 'Secretaire' ? 'Secrétaire' :
+                            (user.role === 'NORMALE' || user.role === 'NORMALE_ALL') ? 'Agent' :
+                            'Rôle inconnu'
+                          }
+
+                          color={
+                            user.role === 'ADMIN' ? 'primary' :
+                            (user.role === 'CHEF_DEP'|| user.role === 'CHEF_DEP_SI' ) ? 'secondary' :
+                            user.role === 'CHEF_SI' ? 'info' :
+                            user.role === 'CHEF_BUR' ? 'success' :
+                            user.role === 'Secretaire' ? 'warning' :
+                            (user.role === 'NORMALE' || user.role === 'NORMALE_ALL') ? 'default' :
+                            'default'
+                          }
+
+                          size="small"
+                        />
+
                         </TableCell>
                         <TableCell>{user.department?.name || '-'}</TableCell>
                         <TableCell>{user.service?.name || '-'}</TableCell>

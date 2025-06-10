@@ -28,13 +28,19 @@ const TicketFormPage = () => {
     const bureauId = parsedbureau_id?.id || '';
     const serviceId = parsedservice_id?.id || '';
   
-    let status = 'SERVICE_VALIDATED';
+    let status = 'BUREAU_VALIDATED';
   
-    if (bureauId === 10 && serviceId === 10 && parsedUser.role !== "CHEF_DEP_SI" ) {
-      status = 'SI_SERVICE';
-    } else if (bureauId === 10 && serviceId !== 10) {
+    if (
+      parsedUser.role === "CHEF_DEP_SI" ||
+      parsedUser.role === "CHEF_DEP" ||
+      parsedUser.role === "CHEF_SI" ||
+      parsedUser.role === "CHEF_BUR" ||
+      parsedUser.role === "Secretaire" ||
+      parsedUser.role === "NORMALE_ALL"
+    ) {
       status = 'SI_SERVICE';
     }
+    
     // else if (parsedUser.role === "CHEF_DEP_SI") {
     //   status = 'SI_SERVICE';
     // }
@@ -95,7 +101,7 @@ console.log("parsedUser?.department_id",parsedUser?.id)
           navigate('/admin');
           break;
         case 'CHEF_BUR':
-          navigate('/ticketsPage');
+          navigate('/c-b-v');
           break;
           case 'CHEF_SI':
             navigate('/c-s-v');
@@ -103,9 +109,18 @@ console.log("parsedUser?.department_id",parsedUser?.id)
             case 'CHEF_DEP':
                 navigate('/c-d-v');
                 break;
+                case 'NORMALE':
+                  navigate('/ticketsPage');
+                  break;
                 case 'CHEF_DEP_SI':
                     navigate('/c-d-si');
                     break;
+                    case 'NORMALE_ALL':
+                      navigate('/ticketsPage');
+                      break;
+                      case 'Secretaire':
+                        navigate('/ticketsPage');
+                        break;
         default:
           navigate('/');
       }

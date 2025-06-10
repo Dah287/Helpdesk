@@ -35,32 +35,35 @@ const ChefDepV = () => {
 
  const [selectedTicket, setSelectedTicket] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [allTickets, setAllTickets] = useState([]);  // liste complète
 
   useEffect(() => {
     loadTickets();
   }, []);
 
-  const loadTickets = async () => {
-    try {
-      const response = await api.getAllTicketsDepV2(parseddepartment_id.id);
-      console.log("date :",response.data)
-      setTickets(response.data);
-    } catch (error) {
-      console.error("Error loading tickets:", error);
-    }
-  };
+ // ─────────── Chargement initial ───────────
+const loadTickets = async () => {
+  try {
+    const res = await api.getAllTicketsDepV2(parseddepartment_id.id);
+    console.log('data :', res.data);
+    setAllTickets(res.data);   // garde tout
+    setTickets(res.data);      // montre tout
+  } catch (err) {
+    console.error('Error loading tickets:', err);
+  }
+};
 
-  const handleFilter = async (status) => {
-    setFilter(status);
-    try {
-      const response = status === 'all' 
-        ? await api.getAllTicketsDepV2(parseddepartment_id.id)
-        : await api.getTicketsByStatus(status,parsedUser.username);
-      setTickets(response.data);
-     } catch (error) {
-      console.error("Error filtering tickets:", error);
-    }
-  };
+
+// ─────────── Filtre local (aucun appel API) ───────────
+const handleFilter = (status) => {
+  setFilter(status);
+
+  setTickets(
+    status === 'all'
+      ? allTickets
+      : allTickets.filter(t => t.status === status)
+  );
+};
 
   const handleDelete = async (id) => {
     try {
@@ -78,8 +81,7 @@ const ChefDepV = () => {
       // (ticket.service?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.bureau?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.equipmentType || '').toLowerCase().includes(searchTerm) ||
-      (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
-      (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
+      (ticket.problemDescription || '').toLowerCase().includes(searchTerm)
     );
   });
 
@@ -88,7 +90,7 @@ const ChefDepV = () => {
       case 'EN_COURS': return 'warning';
       case 'RESOLU': return 'success';
       case 'TRANS_SM': return 'primary';
-      case 'SERVICE_VALIDATED': return 'info';
+      case 'BUREAU_VALIDATED': return 'info';
       case 'SI_SERVICE': return 'secondary';
       default: return 'default';
     }
@@ -158,10 +160,10 @@ const navigate = useNavigate();
       <MenuIcon />
     </IconButton>
     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-
+{/* 
     {parsedUser?.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id?.bureau}`}
       {parsedUser?.role === "CHEF_SI" && `Chef de service - ${parsedservice_id?.name}`}
-      {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`}
+      {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`} */}
 
     </Typography>
 
@@ -178,8 +180,8 @@ const navigate = useNavigate();
       <MenuIcon />
     </IconButton>
     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-
-      {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`}
+{/* 
+      {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`} */}
     </Typography>
 
     <IconButton color="inherit">
@@ -213,7 +215,7 @@ const navigate = useNavigate();
 </AppBar>
 
 
-<Box sx={{ p: 3, width: 'calc(180%  - 240px)', marginTop: '64px' }}>
+<Box sx={{ p: 3, width: 'calc(170%  - 240px)', marginTop: '64px' }}>
       <Typography variant="h4" gutterBottom>
       Chef Dep  Validation
       </Typography>
@@ -236,10 +238,10 @@ const navigate = useNavigate();
               label="Statut"
             >
               <MenuItem value="all">Tous</MenuItem>    
-              <MenuItem value="#">Reçu Par SI</MenuItem>
-              <MenuItem value="#">En cours</MenuItem>
-              <MenuItem value="#">Résolu</MenuItem>
-              <MenuItem value="#">Société de maintenance</MenuItem>
+              <MenuItem value="SI_SERVICE">Reçu Par SI</MenuItem>
+              <MenuItem value="EN_COURS">En cours</MenuItem>
+              <MenuItem value="RESOLU">Résolu</MenuItem>
+              <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
             </Select>
           </FormControl>
         
@@ -258,6 +260,7 @@ const navigate = useNavigate();
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Numéro Série</TableCell>
+              <TableCell>Créé par</TableCell>
               <TableCell>Bureau</TableCell>
               <TableCell>Département</TableCell>
               <TableCell>Service</TableCell>
@@ -274,13 +277,14 @@ const navigate = useNavigate();
                 <TableRow key={ticket.id} hover>
                   <TableCell>{ticket.id}</TableCell>
                   <TableCell>{ticket.serialNumber || '-'}</TableCell>
+                  <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
                   <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                   <TableCell>{ticket.department?.name || '-'}</TableCell>
                   <TableCell>{ticket.service?.name || '-'}</TableCell>
                   <TableCell>
                     {ticket.equipmentType || '-'} {ticket.brand && `(${ticket.brand})`}
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 300 }}>
+                  <TableCell sx={{ maxWidth: 250 }}>
                     <Typography noWrap>
                       {ticket.problemDescription}
                     </Typography>
@@ -302,22 +306,50 @@ const navigate = useNavigate();
                           ticket.status === 'TRANS_SM' ? 'Société de maintenance' :
                           ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
                           ticket.status === 'RESOLU' ? 'Résolu' :
-                          ticket.status === 'SERVICE_VALIDATED' ? 'En cours de validation de service' : // Ajout pour 'SERVICE_VALIDATED'
+                          ticket.status === 'BUREAU_VALIDATED' ? 'En cours de validation CHEF BUREAU ' : // Ajout pour 'SERVICE_VALIDATED'
                           ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute
                          }
                       color={getStatusColor(ticket.status)}
                       size="small"
                     />
                   </TableCell>
-                                    <TableCell>
-                                     
-                                  <Tooltip title="Voir détails">
-                                    <IconButton onClick={() => handleViewDetails(ticket)}>
-                                      <ViewIcon color="primary" />
-                                    </IconButton>
-                                  </Tooltip>
+                  <TableCell align="center">
+  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+    <Tooltip title="Voir détails">
+      <IconButton 
+        onClick={() => handleViewDetails(ticket)} 
+        size="small" 
+        sx={{ color: 'primary.main' }}
+      >
+        <ViewIcon />
+      </IconButton>
+    </Tooltip>
+
+    <Button 
+      variant="outlined"
+      size="small"
+      startIcon={<Edit />}
+      onClick={() => window.location.href = `/tickets/${ticket.id}/edit`}
+      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+    >
+      Modifier
+    </Button>
+
+    <Button 
+      variant="outlined"
+      size="small"
+      color="error"
+      startIcon={<Delete />}
+      onClick={() => handleDelete(ticket.id)}
+      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+    >
+      Supprimer
+    </Button>
+  </Box>
+</TableCell>
+
                                       
-                                      </TableCell>
+
                   {/* <TableCell>
                   <Button
                 variant="contained"

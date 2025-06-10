@@ -16,13 +16,11 @@ import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import api from '../../services/api';
 
-const ChefServiceList = () => {
-
+const ChefBureau = () => {
+    const [allTickets, setAllTickets] = useState([]);   // référence complète
+    const [tickets,     setTickets]   = useState([]);   // liste affichée
+    const [filter,      setFilter]    = useState('all');
   const [search, setSearch] = useState('');
-
-  const [allTickets, setAllTickets] = useState([]);   // référence complète
-const [tickets,     setTickets]   = useState([]);   // liste affichée
-const [filter,      setFilter]    = useState('all');
 
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -45,32 +43,31 @@ const [filter,      setFilter]    = useState('all');
     loadTickets();
   }, []);
 
-// ─────────── Chargement initial ───────────
-const loadTickets = async () => {
-  try {
-    const res = await api.getAllTicketsService2(
-      parseddepartment_id.id,
-      parsedservice_id.id
+  const loadTickets = async () => {
+    try {
+      const res = await api.getAllTicketsBureau2(
+        parseddepartment_id.id,
+        parsedbureau_id.id
+      );
+      //g('data :', res.data);
+      setAllTickets(res.data);   // conserve tout
+      setTickets(res.data);      // affiche tout
+    } catch (err) {
+      console.error('Error loading tickets:', err);
+    }
+  };
+  
+  
+  // ─────────── Filtre local (zéro API) ───────────
+  const handleFilter = (status) => {
+    setFilter(status);
+  
+    setTickets(
+      status === 'all'
+        ? allTickets
+        : allTickets.filter(t => t.status === status)
     );
-    console.log('data :', res.data);
-    setAllTickets(res.data);   // garde tout
-    setTickets(res.data);      // affiche tout
-  } catch (err) {
-    console.error('Error loading tickets:', err);
-  }
-};
-
-
-// ─────────── Filtre local ───────────
-const handleFilter = (status) => {
-  setFilter(status);
-
-  setTickets(
-    status === 'all'
-      ? allTickets
-      : allTickets.filter(t => t.status === status)
-  );
-};
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -174,7 +171,7 @@ const navigate = useNavigate();
 
 <Box sx={{ p: 3, width: 'calc(170% - 240px)', marginTop: '64px' }}>
       <Typography variant="h4" gutterBottom>
-      Chef Service Validation
+      Chef de Bureau Validation
       </Typography>
       
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
@@ -263,7 +260,7 @@ const navigate = useNavigate();
                           ticket.status === 'TRANS_SM' ? 'Société de maintenance' :
                           ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
                           ticket.status === 'RESOLU' ? 'Résolu' :
-                          ticket.status === 'BUREAU_VALIDATED' ? 'En cours de validation CHEF BUREAU ' : // Ajout pour 'SERVICE_VALIDATED'
+                          ticket.status === 'BUREAU_VALIDATED' ? 'Merci de valider ce ticket.' :
                           ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute
                          }
                       color={getStatusColor(ticket.status)}
@@ -271,44 +268,46 @@ const navigate = useNavigate();
                     />
                   </TableCell>
                   <TableCell>
-                  <Box sx={{ display: 'flex', gap: 1 ,}}>
-                  <Button
-                  variant="contained"
-                  size="small"
-                  color="success"
-                  startIcon={<CheckCircle />}
-                  onClick={() => handleValidate(ticket.id)}
-                  disabled={ticket.status !== "SERVICE_VALIDATED"} // 👈 condition ici
-                  sx={{ 
-                    backgroundColor: '#4caf50',
-                    '&:hover': { backgroundColor: '#388e3c' },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  Valider
-                </Button>
-                    <Button 
-                      variant="outlined"
-                      size="small"
-                      startIcon={<Edit />}
-                      onClick={() => window.location.href = `/tickets/${ticket.id}/edit`}
-                      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
-                    >
-                      Modifier
-                    </Button>
-                
-                    <Button 
-                      variant="outlined"
-                      size="small"
-                      color="error"
-                      startIcon={<Delete />}
-                      onClick={() => handleDelete(ticket.id)}
-                      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
-                    >
-                      Supprimer
-                    </Button>
+  <Box sx={{ display: 'flex', gap: 1 ,}}>
+    <Button
+      variant="contained"
+      size="small"
+      color="success"
+      startIcon={<CheckCircle />}
+      onClick={() => handleValidate(ticket.id)}
+      disabled={ticket.status !== "BUREAU_VALIDATED"}
+      sx={{
+        backgroundColor: '#4caf50',
+        '&:hover': { backgroundColor: '#388e3c' },
+        transition: 'all 0.3s ease'
+      }}
+    >
+      Valider
+    </Button>
+
+    <Button 
+      variant="outlined"
+      size="small"
+      startIcon={<Edit />}
+      onClick={() => window.location.href = `/tickets/${ticket.id}/edit`}
+      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+    >
+      Modifier
+    </Button>
+
+    <Button 
+      variant="outlined"
+      size="small"
+      color="error"
+      startIcon={<Delete />}
+      onClick={() => handleDelete(ticket.id)}
+      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+    >
+      Supprimer
+    </Button>
   </Box>
-                  </TableCell>
+</TableCell>
+
                 </TableRow>
               ))
             ) : (
@@ -327,4 +326,4 @@ const navigate = useNavigate();
   );
 };
 
-export default ChefServiceList;
+export default ChefBureau;

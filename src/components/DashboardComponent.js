@@ -36,7 +36,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
-const AdminDashboard = () => {
+const DashboardComponent = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -156,8 +156,9 @@ const generateChartData = (tickets) => {
   // Statistiques
   const [stats, setStats] = useState([
     { title: 'Tickets Ouverts', value: 0, icon: '📋', color: 'primary' },
+    { title: 'Tickets En Attente d\'Action', value: 0, icon: '🕒', color: 'info' }, // 👈 ajout ici
     { title: 'En Cours', value: 0, icon: '⏳', color: 'warning' },
-    { title: 'Transmettre à la société de maintenance', value: 0, icon: '🚚', color: 'primary' }, // Ajout ici
+    { title: 'Société de Maintenance', value: 0, icon: '🚚', color: 'primary' }, // Ajout ici
     { title: 'Résolus', value: 0, icon: '✅', color: 'success' },
 
    ]);
@@ -193,15 +194,20 @@ const generateChartData = (tickets) => {
         const users = await usersRes.json();
   
         const total = tickets.length;
+        const tickATTAction = tickets.filter(t =>
+            ['SI_SERVICE', 'EN_COURS', 'RESOLU', 'TRANS_SM'].includes(t.status)
+          ).length;
+          
         const ouverts = tickets.filter(t => t.status === 'SI_SERVICE').length;
         const encours = tickets.filter(t => t.status === 'EN_COURS').length;
         const resolus = tickets.filter(t => t.status === 'RESOLU').length;
         const transm = tickets.filter(t => t.status === 'TRANS_SM').length;
   
         setStats([
-          { title: 'Tickets Ouverts', value: ouverts, icon: '📋', color: 'primary' },
+          { title: 'Tickets Ouverts', value: tickATTAction, icon: '📋', color: 'primary' },
+          { title: 'Tickets En Attente d\'Action', value: ouverts, icon: '🕒', color: 'info' }, // 👈 ajout ici
           { title: 'En Cours', value: encours, icon: '⏳', color: 'warning' },
-          { title: 'Transmettre à la société de maintenance', value: transm, icon: '🚚', color: 'primary' },
+          { title: 'Société de Maintenance', value: transm, icon: '🚚', color: 'primary' },
           { title: 'Résolus', value: resolus, icon: '✅', color: 'success' },
      
         ]);
@@ -388,7 +394,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 
   return (
-    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)' }}>
+    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)' ,marginLeft : '100px' }}>
       <CssBaseline />
       
       {/* Barre de navigation */}
@@ -437,22 +443,22 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         sx={{
           width: 0,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+          [`& .MuiDrawer-paper`]: { width: 190, boxSizing: 'border-box' },
         }}
       >
         <Toolbar /> {/* Espace pour la barre d'appbar */}
         <Box sx={{ overflow: 'auto' }}>
           <List>
 
-            <ListItem button component="a" href="/admin" sx={{ color: 'inherit', textDecoration: 'none' }}>
+            <ListItem button component="a" href="/admin/Dashboard" sx={{ color: 'inherit', textDecoration: 'none' }}>
             <ListItemIcon><UsersIcon /></ListItemIcon>
             <ListItemText primary="Dashboard" />
           </ListItem>
-            <ListItem button>
+          <ListItem button component="a" href="/admin/Tickets" sx={{ color: 'inherit', textDecoration: 'none' }}>
               <ListItemIcon><TicketsIcon /></ListItemIcon>
               <ListItemText primary="Tickets" />
             </ListItem>
-            <ListItem button component="a" href="/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
+            <ListItem button component="a" href="/admin/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
             <ListItemIcon><UsersIcon /></ListItemIcon>
             <ListItemText primary="Utilisateurs" />
           </ListItem>
@@ -471,13 +477,13 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 {/* Section Statistiques */}
 <Grid container spacing={3} sx={{ mb: 3 }}>
   {stats.map((stat, index) => (
-    <Grid item xs={12} sm={6} md={3} key={index}> {/* Modification de md à 2.4 */}
+    <Grid item xs={12} sm={6} md={2.4} key={index}> {/* Modification de md à 2.4 */}
       <Card sx={{ backgroundColor: `${stat.color}.light` }}>
         <CardContent>
-          <Typography variant="h5" component="div">
+          <Typography variant="h7" component="div">
             {stat.icon} {stat.title}
           </Typography>
-          <Typography variant="h3" component="div" sx={{ mt: 2 }}>
+          <Typography variant="h4" component="div" sx={{ mt: 2 }}>
             {stat.value}
           </Typography>
         </CardContent>
@@ -494,7 +500,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
                 <Typography variant="h6" gutterBottom>
                   Tickets par mois
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={500}>
                 {loadingChart ? (
                   <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                     <CircularProgress />
@@ -521,7 +527,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
                   Tickets Récemment Créés
                 </Typography>
                 <List>
-                  {tickets.slice(0, 3).map(ticket => (
+                  {tickets.slice(0, 7).map(ticket => (
                     <ListItem key={ticket.id}>
                       <ListItemText
                         primary={`#${ticket.id} - ${ticket.problemDescription.substring(0, 30)}...`}
@@ -535,436 +541,10 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
           </Grid>
         </Grid>
 
-        {/* Section Tableau des Tickets */}
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h5">Gestion des Tickets</Typography>
-              <Button 
-                variant="contained" 
-                startIcon={<RefreshIcon />}
-                onClick={loadTickets}
-              >
-                Actualiser
-              </Button>
-            </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-  {/* Recherche générale */}
-  <TextField
-    label="Recherche générale"
-    variant="outlined"
-    size="small"
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    sx={{ flexGrow: 1, minWidth: 200 }}
-  />
-  
-  {/* Numéro de série */}
-  <TextField
-    label="Numéro de série"
-    variant="outlined"
-    size="small"
-    value={serialNumberSearch}
-    onChange={(e) => setSerialNumberSearch(e.target.value)}
-    sx={{ minWidth: 180 }}
-  />
-  
-  {/* Bureau */}
-  <TextField
-    label="Bureau"
-    variant="outlined"
-    size="small"
-    value={bureauSearch}
-    onChange={(e) => setBureauSearch(e.target.value)}
-    sx={{ minWidth: 180 }}
-  />
-  
-  {/* Service */}
-  <TextField
-    label="Service"
-    variant="outlined"
-    size="small"
-    value={serviceSearch}
-    onChange={(e) => setServiceSearch(e.target.value)}
-    sx={{ minWidth: 180 }}
-  />
-  
-  {/* Filtre par statut */}
-  <FormControl sx={{ minWidth: 180 }} size="small">
-    <InputLabel>Statut</InputLabel>
-    <Select
-      value={filter}
-      onChange={(e) => setFilter(e.target.value)}
-      label="Statut"
-    >
-      <MenuItem value="all">Tous</MenuItem>
-      <MenuItem value="SI_SERVICE">Reçu</MenuItem>
-      <MenuItem value="EN_COURS">En cours</MenuItem>
-      <MenuItem value="RESOLU">Résolu</MenuItem>
-      <MenuItem value="TRANS_SM">Société maintenance</MenuItem>
-    </Select>
-  </FormControl>
-  
-  <Button 
-    variant="outlined" 
-    startIcon={<FilterIcon />}
-    onClick={() => {
-      setSearchTerm('');
-      setSerialNumberSearch('');
-      setBureauSearch('');
-      setServiceSearch('');
-      setFilter('all');
-    }}
-  >
-    Réinitialiser
-  </Button>
-</Box>
-
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Numéro Série</TableCell>
-                    <TableCell>Créé par</TableCell>
-                    <TableCell>Bureau</TableCell>
-                    <TableCell>Service</TableCell>
-                    <TableCell>Département</TableCell>
-                    <TableCell>Type Demande</TableCell>
-                    <TableCell>Problème</TableCell>
-                    <TableCell>Priorité</TableCell>
-                    <TableCell>Statut</TableCell>
-                    <TableCell>Créé le
-                    <ArrowDownwardIcon fontSize="small" sx={{ verticalAlign: 'middle' }} />
-                    </TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-        {currentTickets.map((ticket) => (
-          <TableRow key={ticket.id} hover>
-            <TableCell>{ticket.id}</TableCell>
-            <TableCell>
-              <Typography noWrap>
-              {ticket.serialNumber|| '-'}
-              </Typography>
-              </TableCell>
-              <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
-            <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
-            <TableCell>{ticket.service?.name || '-'}</TableCell>
-            <TableCell>{ticket.department?.name}</TableCell>
-            <TableCell>{ticket.typeDemande}</TableCell>
-            <TableCell sx={{ maxWidth: 200 }}>
-              <Typography noWrap>
-                {ticket.problemDescription}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Chip 
-                label={ticket.priority} 
-                color={
-                  ticket.priority === 'HAUTE' ? 'error' : 
-                  ticket.priority === 'MOYENNE' ? 'warning' : 'default'
-                }
-                size="small"
-              />
-            </TableCell>
-            <TableCell>
-  <Chip
-   label={
-    ticket.status === 'EN_COURS' ? 'En cours' :
-    ticket.status === 'TRANS_SM' ? 'S. maintenance' :
-    ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
-    ticket.status === 'RESOLU' ? 'Résolu' : // Ajout pour 'RESOLU'
-    ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute
-   }
-   color={
-    ticket.status === 'OPEN' ? 'primary' :
-    ticket.status === 'SI_SERVICE' ? 'secondary' :
-    ticket.status === 'TRANS_SM' ? 'primary' :
-    ticket.status === 'EN_COURS' ? 'warning' :
-    ticket.status === 'RESOLU' ? 'success' : // Couleur pour 'RESOLU'
-    'default' // Couleur par défaut si aucune condition n'est remplie
-   }
-   size="small"
-  />
- </TableCell >
-            <TableCell>
-              {new Date(ticket.createdAt).toLocaleDateString()}
-            </TableCell>
-            <TableCell >
-            <Box sx={{ display: 'flex', gap: 1 }}>
-  <Tooltip title="Voir détails">
-    <IconButton onClick={() => handleViewDetails(ticket)}>
-      <ViewIcon color="primary" />
-    </IconButton>
-  </Tooltip>
-
-  <Tooltip title="Mettre en cours">
-    <IconButton onClick={() => handleUpdateStatus(ticket.id, 'EN_COURS')} color="warning">
-      <HourglassTopIcon />
-    </IconButton>
-  </Tooltip>
-
-      {/* Nouveau bouton pour transmettre à la société de maintenance */}
-      <Tooltip title="Transmettre à la société de maintenance">
-      <IconButton 
-        onClick={() => handleUpdateStatus(ticket.id,'TRANS_SM')}
-        color="info"
-
-      >
-        <ConstructionIcon color="primary"/>
-      </IconButton>
-    </Tooltip>
-
-    <Tooltip title="Résoudre">
-      <IconButton onClick={() => handleResolveClick(ticket)}>
-        <ResolveIcon color="success" />
-      </IconButton>
-    </Tooltip>
-
-  {/* ✅ Bouton de téléchargement */}
-  <Tooltip title="Télécharger le rapport">
-    <IconButton onClick={() => handleDownloadReport(ticket.id)}>
-      <FileDownloadIcon color="secondary" />
-    </IconButton>
-  </Tooltip>
-</Box>
-            </TableCell>
-          </TableRow>
-        ))}
-                </TableBody>
-                 {/* Ajoutez ce dialogue à la fin de votre composant view */}
-                 <Dialog 
-  open={openDialog} 
-  onClose={() => setOpenDialog(false)}
-  maxWidth="md"
-  fullWidth
->
-  <DialogTitle>Détails du Ticket #{selectedTicket?.id}</DialogTitle>
-  <DialogContent dividers>
-    {selectedTicket && (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-            Description complète
-          </Typography>
-          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
-            {selectedTicket.problemDescription}
-          </Typography>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-          Type de demande
-          </Typography>
-          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
-            {selectedTicket.typeDemande}
-          </Typography>
-        </Box>
-
-        <Grid container spacing={2}>
-          {/* Section 1: Informations de base */}
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Numéro de série</Typography>
-            <Typography>{selectedTicket.serialNumber || '-'}</Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Bureau</Typography>
-            <Typography>{selectedTicket.bureau?.bureau || '-'}</Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Département</Typography>
-            <Typography>{selectedTicket.department?.name || '-'}</Typography>
-          </Grid>
-          
-          {/* Section 2: Informations supplémentaires */}
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Service</Typography>
-            <Typography>{selectedTicket.service?.name || '-'}</Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Type d'équipement</Typography>
-            <Typography>
-              {selectedTicket.equipmentType} 
-              {selectedTicket.brand && ` (${selectedTicket.brand})`}
-            </Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Priorité</Typography>
-            <Chip 
-              label={selectedTicket.priority} 
-              color={
-                selectedTicket.priority === 'HIGH' ? 'error' : 
-                selectedTicket.priority === 'MEDIUM' ? 'warning' : 'default'
-              }
-            />
-          </Grid>
-          
-          {/* Section 3: Dates et statut */}
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Statut</Typography>
-            <Chip 
-              label={selectedTicket.status} 
-              color={
-                selectedTicket.status === 'OPEN' ? 'primary' : 
-                selectedTicket.status === 'IN_PROGRESS' ? 'warning' : 'success'
-              }
-            />
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Créé par</Typography>
-            <Typography>{selectedTicket.createdBy?.username || 'Non spécifié'}</Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Date de création</Typography>
-            <Typography>
-              {new Date(selectedTicket.createdAt).toLocaleString()}
-            </Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Dernière mise à jour</Typography>
-            <Typography>
-              {new Date(selectedTicket.updatedAt || selectedTicket.createdAt).toLocaleString()}
-            </Typography>
-          </Grid>
-        </Grid>
-
-{/* Section pour d'autres détails si nécessaire */}
-<Box>
-  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
-    Autres informations
-  </Typography>
-
-  <Box sx={{ mt: 2 }}>
-    <Typography variant="subtitle2">Problème trouvé</Typography>
-    <TextField
-      multiline
-      fullWidth
-      rows={3}
-      variant="outlined"
-      value={selectedTicket.foundProblem || ''}
-      onChange={(e) =>
-        setSelectedTicket((prev) => ({
-          ...prev,
-          foundProblem: e.target.value,
-        }))
-      }
-    />
-  </Box>
-
-  <Box sx={{ mt: 2 }}>
-    <Typography variant="subtitle2">Solution effectuée</Typography>
-    <TextField
-      multiline
-      fullWidth
-      rows={3}
-      variant="outlined"
-      value={selectedTicket.appliedSolution || ''}
-      onChange={(e) =>
-        setSelectedTicket((prev) => ({
-          ...prev,
-          appliedSolution: e.target.value,
-        }))
-      }
-    />
-  </Box>
-
-  {/* ✅ Bouton pour valider */}
-  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-    <Button variant="contained" color="primary" onClick={handleInputChange}>
-      Valider les modifications
-    </Button>
-  </Box>
-</Box>
-
-      </Box>
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setOpenDialog(false)} color="primary">
-      Fermer
-    </Button>
-  </DialogActions>
-</Dialog>
-
-{/* Ajoutez ce dialogue à la fin de votre composant Problème trouvé avant le resolution */}
-{/* Dialogue pour la résolution */}
-<Dialog 
-  open={resolveDialogOpen} 
-  onClose={() => setResolveDialogOpen(false)}
-  maxWidth="md"
-  fullWidth
->
-  <DialogTitle>Résoudre le Ticket #{ticketToResolve?.id}</DialogTitle>
-  <DialogContent dividers>
-    <Box>
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
-        Informations de résolution
-      </Typography>
-
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2">Problème trouvé</Typography>
-        <TextField
-          multiline
-          fullWidth
-          rows={3}
-          variant="outlined"
-          value={selectedTicket?.foundProblem || ''}
-          onChange={(e) =>
-            setSelectedTicket((prev) => ({
-              ...prev,
-              foundProblem: e.target.value,
-            }))
-          }
-        />
-      </Box>
-
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2">Solution effectuée</Typography>
-        <TextField
-          multiline
-          fullWidth
-          rows={3}
-          variant="outlined"
-          value={selectedTicket?.appliedSolution || ''}
-          onChange={(e) =>
-            setSelectedTicket((prev) => ({
-              ...prev,
-              appliedSolution: e.target.value,
-            }))
-          }
-        />
-      </Box>
-    </Box>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setResolveDialogOpen(false)} color="primary">
-      Annuler
-    </Button>
-    <Button 
-      variant="contained" 
-      color="success" 
-      onClick={handleConfirmResolve}
-    >
-      Confirmer la résolution
-    </Button>
-  </DialogActions>
-</Dialog>
-              </Table>
-            </TableContainer>
-
-            {/* Pagination */}
-            <Pagination
-  count={totalPages}
-  page={currentPage}
-  onChange={(event, page) => setCurrentPage(page)}
-  color="primary"
-  sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
-/>
-          </CardContent>
-        </Card>
       </Box>
     </Box>
   );
 };
 
-export default AdminDashboard;
+export default DashboardComponent;

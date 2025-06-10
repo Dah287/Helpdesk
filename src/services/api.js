@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuration de base
-const API_BASE_URL = 'http://192.168.1.27:8082/api'; // URL de base
+const API_BASE_URL = 'http://localhost:8082/api'; // URL de base
 
 // ➕ Création d'une instance Axios personnalisée
 const axiosInstance = axios.create({
@@ -15,10 +15,10 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log("Token utilisé :", token); // 👈 Ajout du log
+    //g("Token utilisé :", token); // 👈 Ajout du log
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Token utilisé2 :", config.headers.Authorization); // 👈 Ajout du log
+      //g("Token utilisé2 :", config.headers.Authorization); // 👈 Ajout du log
     }
     return config;
   },
@@ -55,11 +55,14 @@ const api = {
   getAllTicketsDepV: (id, userId) => axiosInstance.get(`/tickets/tickets-chef-Dep-validation/${id}/${userId}`),
   getAllTicketsDepSI: () => axiosInstance.get('/tickets/tickets-chef-Dep-SI'),
   getAllTicketsService2: (id, serviceId) => axiosInstance.get(`/tickets/tickets-chef-service-validation2/${id}/${serviceId}`),
+  getAllTicketsBureau2: (id, bureauId) => axiosInstance.get(`/tickets/tickets-chef-bureau-validation2/${id}/${bureauId}`),
   getAllTicketsDepV2: (id) => axiosInstance.get(`/tickets/tickets-chef-Dep-validation2/${id}`),
 
   // Validations
   updateTicketService: (id) => axiosInstance.put(`/tickets/${id}/v-service`),
+  updateTicketBureau: (id) => axiosInstance.put(`/tickets/${id}/v-bureau`),
   validateService: (id) => axiosInstance.put(`/tickets/${id}/date-validate-service`),
+  validateBureau: (id) => axiosInstance.put(`/tickets/${id}/date-validate-bureau`),
   validateDep: (id) => axiosInstance.put(`/tickets/${id}/date-validate-dep`),
   validateSI: (id) => axiosInstance.put(`/tickets/${id}/date-validate-si`),
   updateTicketDepV: (id) => axiosInstance.put(`/tickets/${id}/v-dep`),

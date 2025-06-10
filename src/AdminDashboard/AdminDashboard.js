@@ -443,7 +443,10 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         <Toolbar /> {/* Espace pour la barre d'appbar */}
         <Box sx={{ overflow: 'auto' }}>
           <List>
-
+            <ListItem button selected>
+              <ListItemIcon><DashboardIcon /></ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItem>
             <ListItem button component="a" href="/admin" sx={{ color: 'inherit', textDecoration: 'none' }}>
             <ListItemIcon><UsersIcon /></ListItemIcon>
             <ListItemText primary="Dashboard" />
@@ -602,7 +605,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       <MenuItem value="SI_SERVICE">Reçu</MenuItem>
       <MenuItem value="EN_COURS">En cours</MenuItem>
       <MenuItem value="RESOLU">Résolu</MenuItem>
-      <MenuItem value="TRANS_SM">Société maintenance</MenuItem>
+      <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
     </Select>
   </FormControl>
   
@@ -674,7 +677,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
   <Chip
    label={
     ticket.status === 'EN_COURS' ? 'En cours' :
-    ticket.status === 'TRANS_SM' ? 'S. maintenance' :
+    ticket.status === 'TRANS_SM' ? 'Société de maintenance' :
     ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
     ticket.status === 'RESOLU' ? 'Résolu' : // Ajout pour 'RESOLU'
     ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute

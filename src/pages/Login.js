@@ -23,15 +23,15 @@ const Login = () => {
     
     try {
 
-      const response = await axios.post('http://192.168.1.27:8082/api/auth/login', {
+      const response = await axios.post('http://localhost:8082/api/auth/login', {
         matricule,
         password
       });
-      console.log(response.data.user.role);  // Affiche la réponse complète
+      //g(response.data.user.role);  // Affiche la réponse complète
       // Stockage du token et des infos utilisateur
      // localStorage.setItem('token', response.data.user.token);
      localStorage.setItem('token', response.data.token);
-     console.log('token :',response.data.token);
+     //g('token :',response.data.token);
       localStorage.setItem('user_id', JSON.stringify(response.data.user.id));
       localStorage.setItem('department_id', JSON.stringify(response.data.user.department));
       localStorage.setItem('service_id', JSON.stringify(response.data.user.service));
@@ -43,14 +43,14 @@ const Login = () => {
 
       
       
-      console.log("dep :",response.data.user.department.id)
+      //g("dep :",response.data.user.department.id)
       // Redirection basée sur le rôle
       switch(response.data.user.role) {
         case 'ADMIN':
-          navigate('/admin');
+          navigate('/admin/Dashboard');
           break;
         case 'CHEF_BUR':
-          navigate('/ticketsPage');
+          navigate('/c-b-v');
           break;
           case 'CHEF_SI':
             navigate('/c-s-v');
@@ -58,15 +58,24 @@ const Login = () => {
             case 'CHEF_DEP':
                 navigate('/c-d-v');
                 break;
+                case 'NORMALE':
+                  navigate('/ticketsPage');
+                  break;
                 case 'CHEF_DEP_SI':
                     navigate('/c-d-si');
                     break;
+                    case 'NORMALE_ALL':
+                      navigate('/ticketsPage');
+                      break;
+                      case 'Secretaire':
+                        navigate('/ticketsPage');
+                        break;
         default:
           navigate('/');
       }
       
     }catch (err) {
-        console.log(err); // Log des erreurs pour mieux comprendre ce qui se passe
+        //g(err); // Log des erreurs pour mieux comprendre ce qui se passe
         setError(err.response?.data.user?.message || 'Matricule ou mot de passe incorrect');
       }
        finally {

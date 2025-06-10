@@ -36,7 +36,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
-const AdminDashboard = () => {
+const TicketsComponent = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -388,7 +388,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 
   return (
-    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)' }}>
+    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)',marginLeft : '100px' }}>
       <CssBaseline />
       
       {/* Barre de navigation */}
@@ -437,31 +437,31 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         sx={{
           width: 0,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+          [`& .MuiDrawer-paper`]: { width: 190, boxSizing: 'border-box' },
         }}
       >
         <Toolbar /> {/* Espace pour la barre d'appbar */}
         <Box sx={{ overflow: 'auto' }}>
-          <List>
+        <List>
 
-            <ListItem button component="a" href="/admin" sx={{ color: 'inherit', textDecoration: 'none' }}>
-            <ListItemIcon><UsersIcon /></ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItem>
-            <ListItem button>
-              <ListItemIcon><TicketsIcon /></ListItemIcon>
-              <ListItemText primary="Tickets" />
-            </ListItem>
-            <ListItem button component="a" href="/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
-            <ListItemIcon><UsersIcon /></ListItemIcon>
-            <ListItemText primary="Utilisateurs" />
-          </ListItem>
+<ListItem button component="a" href="/admin/Dashboard" sx={{ color: 'inherit', textDecoration: 'none' }}>
+<ListItemIcon><UsersIcon /></ListItemIcon>
+<ListItemText primary="Dashboard" />
+</ListItem>
+<ListItem button component="a" href="/admin/Tickets" sx={{ color: 'inherit', textDecoration: 'none' }}>
+  <ListItemIcon><TicketsIcon /></ListItemIcon>
+  <ListItemText primary="Tickets" />
+</ListItem>
+<ListItem button component="a" href="/admin/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
+<ListItemIcon><UsersIcon /></ListItemIcon>
+<ListItemText primary="Utilisateurs" />
+</ListItem>
 
-            <ListItem button>
-              <ListItemIcon><SettingsIcon /></ListItemIcon>
-              <ListItemText primary="Paramètres" />
-            </ListItem>
-          </List>
+<ListItem button>
+  <ListItemIcon><SettingsIcon /></ListItemIcon>
+  <ListItemText primary="Paramètres" />
+</ListItem>
+</List>
         </Box>
       </Drawer>
 
@@ -469,71 +469,10 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}>
         {/* Section Statistiques */}
 {/* Section Statistiques */}
-<Grid container spacing={3} sx={{ mb: 3 }}>
-  {stats.map((stat, index) => (
-    <Grid item xs={12} sm={6} md={3} key={index}> {/* Modification de md à 2.4 */}
-      <Card sx={{ backgroundColor: `${stat.color}.light` }}>
-        <CardContent>
-          <Typography variant="h5" component="div">
-            {stat.icon} {stat.title}
-          </Typography>
-          <Typography variant="h3" component="div" sx={{ mt: 2 }}>
-            {stat.value}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Grid>
-  ))}
- </Grid>
+
 
         {/* Section Graphique */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={8}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Tickets par mois
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                {loadingChart ? (
-                  <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <RechartsTooltip />
-                    <Legend />
-                    <Bar dataKey="tickets" fill="#8884d8" name="Nombre de tickets" />
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Tickets Récemment Créés
-                </Typography>
-                <List>
-                  {tickets.slice(0, 3).map(ticket => (
-                    <ListItem key={ticket.id}>
-                      <ListItemText
-                        primary={`#${ticket.id} - ${ticket.problemDescription.substring(0, 30)}...`}
-                        secondary={`Par ${ticket.createdBy?.username}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+
 
         {/* Section Tableau des Tickets */}
         <Card>
@@ -693,45 +632,55 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
             <TableCell>
               {new Date(ticket.createdAt).toLocaleDateString()}
             </TableCell>
-            <TableCell >
-            <Box sx={{ display: 'flex', gap: 1 }}>
-  <Tooltip title="Voir détails">
-    <IconButton onClick={() => handleViewDetails(ticket)}>
-      <ViewIcon color="primary" />
-    </IconButton>
-  </Tooltip>
-
-  <Tooltip title="Mettre en cours">
-    <IconButton onClick={() => handleUpdateStatus(ticket.id, 'EN_COURS')} color="warning">
-      <HourglassTopIcon />
-    </IconButton>
-  </Tooltip>
-
-      {/* Nouveau bouton pour transmettre à la société de maintenance */}
-      <Tooltip title="Transmettre à la société de maintenance">
-      <IconButton 
-        onClick={() => handleUpdateStatus(ticket.id,'TRANS_SM')}
-        color="info"
-
-      >
-        <ConstructionIcon color="primary"/>
+            <TableCell>
+  <Box sx={{ display: 'flex', gap: 1 }}>
+    <Tooltip title="Voir détails">
+      <IconButton onClick={() => handleViewDetails(ticket)}>
+        <ViewIcon color="primary" />
       </IconButton>
     </Tooltip>
 
+    {/* Bouton Mettre en cours - Désactivé si résolu */}
+    <Tooltip title="Mettre en cours">
+      <span> {/* Ajout d'un wrapper span pour le tooltip sur élément désactivé */}
+        <IconButton 
+          onClick={() => handleUpdateStatus(ticket.id, 'EN_COURS')} 
+          color="warning"
+          disabled={ticket.status === "RESOLU"} // Adaptez la valeur selon votre enum
+        >
+          <HourglassTopIcon />
+        </IconButton>
+      </span>
+    </Tooltip>
+
+    {/* Bouton Transmettre - Désactivé si résolu */}
+    <Tooltip title="Transmettre à la société de maintenance">
+      <span>
+        <IconButton 
+          onClick={() => handleUpdateStatus(ticket.id, 'TRANS_SM')}
+          color="info"
+          disabled={ticket.status === "RESOLU"} // Adaptez la valeur selon votre enum
+        >
+          <ConstructionIcon color="primary"/>
+        </IconButton>
+      </span>
+    </Tooltip>
+
+    {/* Bouton Résoudre */}
     <Tooltip title="Résoudre">
       <IconButton onClick={() => handleResolveClick(ticket)}>
         <ResolveIcon color="success" />
       </IconButton>
     </Tooltip>
 
-  {/* ✅ Bouton de téléchargement */}
-  <Tooltip title="Télécharger le rapport">
-    <IconButton onClick={() => handleDownloadReport(ticket.id)}>
-      <FileDownloadIcon color="secondary" />
-    </IconButton>
-  </Tooltip>
-</Box>
-            </TableCell>
+    <Tooltip title="Télécharger le rapport">
+      <IconButton onClick={() => handleDownloadReport(ticket.id)}
+        disabled={ticket.status !== "RESOLU"}>
+        <FileDownloadIcon color="secondary" />
+      </IconButton>
+    </Tooltip>
+  </Box>
+</TableCell>
           </TableRow>
         ))}
                 </TableBody>
@@ -904,6 +853,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle2">Problème trouvé</Typography>
         <TextField
+          required
           multiline
           fullWidth
           rows={3}
@@ -915,12 +865,17 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
               foundProblem: e.target.value,
             }))
           }
+          error={!selectedTicket?.foundProblem}
+          helperText={
+            !selectedTicket?.foundProblem ? "Ce champ est obligatoire." : ""
+          }
         />
       </Box>
 
       <Box sx={{ mt: 2 }}>
         <Typography variant="subtitle2">Solution effectuée</Typography>
         <TextField
+          required
           multiline
           fullWidth
           rows={3}
@@ -931,6 +886,10 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
               ...prev,
               appliedSolution: e.target.value,
             }))
+          }
+          error={!selectedTicket?.appliedSolution}
+          helperText={
+            !selectedTicket?.appliedSolution ? "Ce champ est obligatoire." : ""
           }
         />
       </Box>
@@ -943,12 +902,20 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     <Button 
       variant="contained" 
       color="success" 
-      onClick={handleConfirmResolve}
+      onClick={() => {
+        if (
+          selectedTicket?.foundProblem &&
+          selectedTicket?.appliedSolution
+        ) {
+          handleConfirmResolve();
+        }
+      }}
     >
       Confirmer la résolution
     </Button>
   </DialogActions>
 </Dialog>
+
               </Table>
             </TableContainer>
 
@@ -967,4 +934,4 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
   );
 };
 
-export default AdminDashboard;
+export default TicketsComponent;

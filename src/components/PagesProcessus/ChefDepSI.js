@@ -36,32 +36,35 @@ const ChefDepSI = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
-  
+  const [allTickets, setAllTickets] = useState([]);  // liste complète
   useEffect(() => {
     loadTickets();
   }, []);
 
-  const loadTickets = async () => {
-    try {
-      const response = await api.getAllTicketsAdmin();
-      console.log("date :",response.data)
-      setTickets(response.data);
-    } catch (error) {
-      console.error("Error loading tickets:", error);
-    }
-  };
+// ─────────── Chargement initial ───────────
+const loadTickets = async () => {
+  try {
+    const res = await api.getAllTicketsAdmin();
+    console.log('data :', res.data);
+    setAllTickets(res.data);   // référence complète
+    setTickets(res.data);      // affichage initial
+  } catch (err) {
+    console.error('Error loading tickets:', err);
+  }
+};
 
-  const handleFilter = async (status) => {
-    setFilter(status);
-    try {
-      const response = status === 'all' 
-        ? await api.getAllTicketsAdmin()
-        : await api.getTicketsByStatus(status,parsedUser.username);
-      setTickets(response.data);
-     } catch (error) {
-      console.error("Error filtering tickets:", error);
-    }
-  };
+
+
+// ─────────── Filtre local ───────────
+const handleFilter = (status) => {
+  setFilter(status);
+
+  setTickets(
+    status === 'all'
+      ? allTickets
+      : allTickets.filter(t => t.status === status)
+  );
+};
 
   const handleDelete = async (id) => {
     try {
@@ -79,7 +82,7 @@ const ChefDepSI = () => {
       // (ticket.service?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.bureau?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.equipmentType || '').toLowerCase().includes(searchTerm) ||
-      (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
+      (ticket.problemDescription || '').toLowerCase().includes(searchTerm)
     );
   });
 
@@ -88,7 +91,7 @@ const ChefDepSI = () => {
       case 'EN_COURS': return 'warning';
       case 'RESOLU': return 'success';
       case 'TRANS_SM': return 'primary';
-      case 'SERVICE_VALIDATED': return 'info';
+      case 'BUREAU_VALIDATED': return 'info';
       case 'SI_SERVICE': return 'secondary';
       default: return 'default';
     }
@@ -163,10 +166,10 @@ const shouldShowValidateButton = (ticket) => {
     </IconButton>
     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
 
-    {parsedUser?.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id?.bureau}`}
+    {/* {parsedUser?.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id?.bureau}`}
       {parsedUser?.role === "CHEF_SI" && `Chef de service - ${parsedservice_id?.name}`}
       {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`}
-      {parsedUser?.role === "CHEF_DEP_SI" && `Chef de département - ${parseddepartment_id?.name}`}
+      {parsedUser?.role === "CHEF_DEP_SI" && `Chef de département - ${parseddepartment_id?.name}`} */}
     </Typography>
 
     <IconButton color="inherit">
@@ -199,7 +202,7 @@ const shouldShowValidateButton = (ticket) => {
   </Toolbar>
 </AppBar>
 
-<Box sx={{ p: 3, width: 'calc(180%  - 240px)', marginTop: '64px' }}>
+<Box sx={{ p: 3, width: 'calc(170%  - 240px)', marginTop: '64px' }}>
       <Typography variant="h4" gutterBottom>
         Chef Dep SI Validation
       </Typography>
@@ -222,10 +225,10 @@ const shouldShowValidateButton = (ticket) => {
               label="Statut"
             >
               <MenuItem value="all">Tous</MenuItem>    
-              <MenuItem value="#">Reçu Par SI</MenuItem>
-              <MenuItem value="#">En cours</MenuItem>
-              <MenuItem value="#">Résolu</MenuItem>
-              <MenuItem value="#">Société de maintenance</MenuItem>
+              <MenuItem value="SI_SERVICE">Reçu Par SI</MenuItem>
+              <MenuItem value="EN_COURS">En cours</MenuItem>
+              <MenuItem value="RESOLU">Résolu</MenuItem>
+              <MenuItem value="TRANS_SM">Société de maintenance</MenuItem>
             </Select>
           </FormControl>
         
@@ -244,6 +247,7 @@ const shouldShowValidateButton = (ticket) => {
             <TableRow>
               <TableCell>ID</TableCell>
               <TableCell>Numéro Série</TableCell>
+              <TableCell>Créé par</TableCell>
               <TableCell>Bureau</TableCell>
               <TableCell>Département</TableCell>
               <TableCell>Service</TableCell>
@@ -260,13 +264,14 @@ const shouldShowValidateButton = (ticket) => {
                 <TableRow key={ticket.id} hover>
                   <TableCell>{ticket.id}</TableCell>
                   <TableCell>{ticket.serialNumber || '-'}</TableCell>
+                  <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
                   <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                   <TableCell>{ticket.department?.name || '-'}</TableCell>
                   <TableCell>{ticket.service?.name || '-'}</TableCell>
                   <TableCell>
                     {ticket.equipmentType || '-'} {ticket.brand && `(${ticket.brand})`}
                   </TableCell>
-                  <TableCell sx={{ maxWidth: 300 }}>
+                  <TableCell sx={{ maxWidth: 250 }}>
                     <Typography noWrap>
                       {ticket.problemDescription}
                     </Typography>
@@ -295,15 +300,40 @@ const shouldShowValidateButton = (ticket) => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>
-                   
-                <Tooltip title="Voir détails">
-                  <IconButton onClick={() => handleViewDetails(ticket)}>
-                    <ViewIcon color="primary" />
-                  </IconButton>
-                </Tooltip>
-                    
-                    </TableCell>
+                  <TableCell align="center">
+  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+    <Tooltip title="Voir détails">
+      <IconButton 
+        onClick={() => handleViewDetails(ticket)} 
+        size="small" 
+        sx={{ color: 'primary.main' }}
+      >
+        <ViewIcon />
+      </IconButton>
+    </Tooltip>
+
+    <Button 
+      variant="outlined"
+      size="small"
+      startIcon={<Edit />}
+      onClick={() => window.location.href = `/tickets/${ticket.id}/edit`}
+      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+    >
+      Modifier
+    </Button>
+
+    <Button 
+      variant="outlined"
+      size="small"
+      color="error"
+      startIcon={<Delete />}
+      onClick={() => handleDelete(ticket.id)}
+      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+    >
+      Supprimer
+    </Button>
+  </Box>
+</TableCell>
                 </TableRow>
               ))
             ) : (

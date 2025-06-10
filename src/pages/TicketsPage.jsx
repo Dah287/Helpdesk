@@ -21,7 +21,7 @@ const TicketsPage = () => {
 
   // Récupérer l'élément 'user' du localStorage
 const userData = localStorage.getItem('user');
-
+const [allTickets, setAllTickets] = useState([]);  // référence complète
 
 const bureau_id = localStorage.getItem('bureau_id');
 const service_id = localStorage.getItem('service_id');
@@ -34,9 +34,9 @@ const parsedservice_id = service_id ? JSON.parse(service_id) : null;
 // Si l'élément existe, on le parse (car il a été stringify)
 if (userData) {
   const parsedUser = JSON.parse(userData);
-  console.log(parsedUser); // Vous pouvez maintenant accéder aux données de l'utilisateur
+  //g(parsedUser); // Vous pouvez maintenant accéder aux données de l'utilisateur
 } else {
-  console.log('Aucune donnée utilisateur trouvée');
+  //g('Aucune donnée utilisateur trouvée');
 }
 const parsedUser = userData ? JSON.parse(userData) : null;
 
@@ -50,28 +50,29 @@ const parsedUser = userData ? JSON.parse(userData) : null;
     loadTickets();
   }, []);
 
-  const loadTickets = async () => {
-    try {
-      console.log("username :", parsedUser.username);
-      const response = await api.getByUserName(parsedUser.username);
-      console.log("date :", response.data);
-      setTickets(response.data);
-    } catch (error) {
-      console.error("Error loading tickets:", error);
-    }
-  };
+// ---- chargement initial -------------------------------------------------
+const loadTickets = async () => {
+  try {
+    //g('username :', parsedUser.username);
+    const res = await api.getByUserName(parsedUser.username);
 
-  const handleFilter = async (status) => {
-    setFilter(status);
-    try {
-      const response = status === 'all' 
-        ? await api.getByUserName(parsedUser.username)
-        : await api.getTicketsByStatus(status,parsedUser.username);
-      setTickets(response.data);
-     } catch (error) {
-      console.error("Error filtering tickets:", error);
-    }
-  };
+    //g('data :', res.data);
+    setAllTickets(res.data);   // garde tout
+    setTickets(res.data);      // montre tout
+  } catch (err) {
+    console.error('Error loading tickets:', err);
+  }
+};
+
+// ---- filtre local -------------------------------------------------------
+const handleFilter = (status) => {
+  setFilter(status);
+  setTickets(
+    status === 'all'
+      ? allTickets
+      : allTickets.filter(t => t.status === status)
+  );
+};
 
   const handleDelete = async (id) => {
     try {
@@ -89,7 +90,7 @@ const parsedUser = userData ? JSON.parse(userData) : null;
       // (ticket.service?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.bureau?.name || '').toLowerCase().includes(searchTerm) ||
       // (ticket.equipmentType || '').toLowerCase().includes(searchTerm) ||
-      (ticket.serialNumber || '').toLowerCase().includes(searchTerm)
+      (ticket.problemDescription || '').toLowerCase().includes(searchTerm)
     );
   });
 
@@ -98,7 +99,7 @@ const parsedUser = userData ? JSON.parse(userData) : null;
       case 'EN_COURS': return 'warning';
       case 'RESOLU': return 'success';
       case 'TRANS_SM': return 'primary';
-      case 'SERVICE_VALIDATED': return 'info';
+      case 'BUREAU_VALIDATED': return 'info';
       case 'SI_SERVICE': return 'secondary';
       default: return 'default';
     }
@@ -130,9 +131,7 @@ const navigate = useNavigate();
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {parsedUser.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id.bureau}`}
-          {parsedUser.role === "CHEF_SI" && `Chef de service - ${parsedservice_id.name}`}
-          {parsedUser.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id.name}`}
+          {/* {parsedUser.role === "NORMALE" && `Agent - ${parsedbureau_id.bureau}`} */}
         </Typography>
 
           <IconButton color="inherit">
@@ -166,7 +165,7 @@ const navigate = useNavigate();
       </AppBar>
 
       {/* Main content */}
-      <Box sx={{ p: 3, width: 'calc(180% - 240px)', marginTop: '64px' }}>
+      <Box sx={{ p: 3, width: 'calc(160% - 240px)', marginTop: '64px' }}>
         <Typography variant="h4" gutterBottom>
           Gestion des Tickets
         </Typography>
@@ -211,6 +210,7 @@ const navigate = useNavigate();
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Numéro Série</TableCell>
+                <TableCell>Créé par</TableCell>
                 <TableCell>Bureau</TableCell>
                 <TableCell>Département</TableCell>
                 <TableCell>Service</TableCell>
@@ -227,11 +227,12 @@ const navigate = useNavigate();
                   <TableRow key={ticket.id} hover>
                     <TableCell>{ticket.id}</TableCell>
                     <TableCell>{ticket.serialNumber|| '-'}</TableCell>
+                    <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
                     <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
                     <TableCell>{ticket.department?.name || '-'}</TableCell>
                     <TableCell>{ticket.service?.name || '-'}</TableCell>
                     <TableCell>{ticket.equipmentType|| '-'} {ticket.brand && `(${ticket.brand})`}</TableCell>
-                    <TableCell sx={{ maxWidth: 300 }}>
+                    <TableCell sx={{ maxWidth: 250 }}>
                       <Typography noWrap>{ticket.problemDescription}</Typography>
                     </TableCell>
                     <TableCell>
@@ -249,7 +250,7 @@ const navigate = useNavigate();
     ticket.status === 'TRANS_SM' ? 'Société de maintenance' :
     ticket.status === 'SI_SERVICE' ? 'Reçu par SI' :
     ticket.status === 'RESOLU' ? 'Résolu' :
-    ticket.status === 'SERVICE_VALIDATED' ? 'En cours de validation de service' : // Ajout pour 'SERVICE_VALIDATED'
+    ticket.status === 'BUREAU_VALIDATED' ? 'En cours de validation CHEF BUREAU ' : // Ajout pour 'SERVICE_VALIDATED'
     ticket.status // Si aucune des conditions n'est remplie, affiche la valeur brute
    }
                         color={getStatusColor(ticket.status)}

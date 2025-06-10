@@ -10,11 +10,14 @@ import ChefDepSI from './components/PagesProcessus/ChefDepSI';
 import Login from './pages/Login';
 import PrivateRoute from './pages/PrivateRoute';
 import UserManagement from './components/UserManagement';
+import ChefBureau from './components/PagesProcessus/ChefBureau';
+import TicketsComponent from './components/TicketsComponent';
+import DashboardComponent from './components/DashboardComponent';
 function App() {
   return (
     <Router>
       <CssBaseline />
-      <Container maxWidth="lg" style={{ padding: '0px',marginLeft: '340px' }}>
+      <Container maxWidth="lg" style={{ padding: '0px',marginLeft: '100px' }}>
         <Routes>
           {/* <Route path="/" element={<Login />} />
           <Route path="/ticketsPage" element={<TicketsPage />} />
@@ -34,10 +37,14 @@ function App() {
           <Route path="/tickets/:id/edit" element={<PrivateRoute><NewTicketPage /></PrivateRoute>} />
           <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
           <Route path="/c-s-v" element={<PrivateRoute><ChefServiceList /></PrivateRoute>} />
+          <Route path="/c-b-v" element={<PrivateRoute><ChefBureau/></PrivateRoute>} />
           <Route path="/c-d-v" element={<PrivateRoute><ChefDepV /></PrivateRoute>} />
           <Route path="/c-d-si" element={<PrivateRoute><ChefDepSI /></PrivateRoute>} />
           <Route path="/user" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
-          <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+          {/* <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} /> */}
+          <Route path="/admin/Tickets" element={<PrivateRoute><TicketsComponent /></PrivateRoute>} />
+          <Route path="/admin/Dashboard" element={<PrivateRoute><DashboardComponent /></PrivateRoute>} />
+          <Route path="/admin/user" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
         </Routes>
       </Container>
     </Router>
