@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tickets")
-@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.1.34:3000"}, maxAge = 3600, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.1.42:3000"}, maxAge = 3600, allowCredentials = "true")
 public class TicketController {
 
     @Autowired
@@ -92,6 +92,7 @@ public class TicketController {
     public ResponseEntity<Ticket> resolveBySIAdmin(@PathVariable Long id) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow();
         ticket.setStatus(TicketStatus.RESOLU);
+
         return ResponseEntity.ok(ticketRepository.save(ticket));
     }
     // Supprimer un ticket
