@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuration de base
-const API_BASE_URL = 'http://localhost:8082/api'; // URL de base
+const API_BASE_URL = 'http://192.168.1.42:8082/api'; // URL de base
 
 // ➕ Création d'une instance Axios personnalisée
 const axiosInstance = axios.create({

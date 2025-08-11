@@ -45,7 +45,7 @@ const ChefDepSI = () => {
 const loadTickets = async () => {
   try {
     const res = await api.getAllTicketsAdmin();
-    console.log('data :', res.data);
+    //g('data :', res.data);
     setAllTickets(res.data);   // référence complète
     setTickets(res.data);      // affichage initial
   } catch (err) {

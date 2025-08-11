@@ -45,7 +45,7 @@ const ChefDepV = () => {
 const loadTickets = async () => {
   try {
     const res = await api.getAllTicketsDepV2(parseddepartment_id.id);
-    console.log('data :', res.data);
+    //g('data :', res.data);
     setAllTickets(res.data);   // garde tout
     setTickets(res.data);      // montre tout
   } catch (err) {

@@ -52,7 +52,7 @@ const loadTickets = async () => {
       parseddepartment_id.id,
       parsedservice_id.id
     );
-    console.log('data :', res.data);
+    //g('data :', res.data);
     setAllTickets(res.data);   // garde tout
     setTickets(res.data);      // affiche tout
   } catch (err) {

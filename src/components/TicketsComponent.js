@@ -5,7 +5,7 @@ import {
   ListItemText, Grid, Card, CardContent, TextField,
   Button, Select, MenuItem, FormControl, InputLabel,
   TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, Chip, IconButton, Tooltip, Paper,Menu,
+  TableBody, Chip, IconButton, Tooltip, Paper,Menu,Divider,
   Dialog, DialogTitle, DialogContent, DialogActions // Nouveaux imports
 } from '@mui/material';
 import {
@@ -36,6 +36,8 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 const TicketsComponent = () => {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -182,8 +184,8 @@ const generateChartData = (tickets) => {
         };
   
         const [ticketsRes, usersRes] = await Promise.all([
-          fetch('http://localhost:8082/api/tickets', { headers }),
-          fetch('http://localhost:8082/api/utilisateurs', { headers }),
+          fetch('http://192.168.1.42:8082/api/tickets', { headers }),
+          fetch('http://192.168.1.42:8082/api/utilisateurs', { headers }),
         ]);
   
         //g("ticketsRes :", ticketsRes);
@@ -357,7 +359,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     const handleDownloadReport = async (ticketId) => {
       try {
         const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
-        const response = await fetch(`http://localhost:8082/api/tickets/${ticketId}/rapport`, {
+        const response = await fetch(`http://192.168.1.42:8082/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf',
@@ -837,21 +839,48 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 {/* Ajoutez ce dialogue à la fin de votre composant Problème trouvé avant le resolution */}
 {/* Dialogue pour la résolution */}
-<Dialog 
-  open={resolveDialogOpen} 
+<Dialog
+  open={resolveDialogOpen}
   onClose={() => setResolveDialogOpen(false)}
   maxWidth="md"
   fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: 4,
+      p: 1,
+      bgcolor: '#fefefe',
+      boxShadow: '0px 10px 25px rgba(0,0,0,0.2)'
+    }
+  }}
 >
-  <DialogTitle>Résoudre le Ticket #{ticketToResolve?.id}</DialogTitle>
-  <DialogContent dividers>
+  <DialogTitle
+    sx={{
+      fontWeight: 600,
+      fontSize: '1.5rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      px: 3,
+      pt: 3
+    }}
+  >
+    Résolution du Ticket #{ticketToResolve?.id}
+    <IconButton onClick={() => setResolveDialogOpen(false)}>
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+
+  <DialogContent dividers sx={{ px: 3, py: 2 }}>
     <Box>
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
         Informations de résolution
       </Typography>
 
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2">Problème trouvé</Typography>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <ReportProblemOutlinedIcon sx={{ mr: 1, color: 'warning.main' }} />
+          Problème trouvé
+        </Typography>
         <TextField
           required
           multiline
@@ -872,8 +901,11 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         />
       </Box>
 
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="subtitle2">Solution effectuée</Typography>
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <CheckCircleOutlineIcon sx={{ mr: 1, color: 'success.main' }} />
+          Solution effectuée
+        </Typography>
         <TextField
           required
           multiline
@@ -895,21 +927,27 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       </Box>
     </Box>
   </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setResolveDialogOpen(false)} color="primary">
+
+  <Divider />
+
+  <DialogActions sx={{ px: 3, py: 2 }}>
+    <Button
+      onClick={() => setResolveDialogOpen(false)}
+      variant="outlined"
+      color="inherit"
+      sx={{ borderRadius: 3, px: 3 }}
+    >
       Annuler
     </Button>
-    <Button 
-      variant="contained" 
-      color="success" 
+    <Button
+      variant="contained"
+      color="success"
       onClick={() => {
-        if (
-          selectedTicket?.foundProblem &&
-          selectedTicket?.appliedSolution
-        ) {
+        if (selectedTicket?.foundProblem && selectedTicket?.appliedSolution) {
           handleConfirmResolve();
         }
       }}
+      sx={{ borderRadius: 3, px: 3 }}
     >
       Confirmer la résolution
     </Button>

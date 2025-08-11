@@ -169,7 +169,7 @@ useEffect(() => {
         alert('Le nom d\'utilisateur et l\'email sont obligatoires');
         return;
       }
-      console.log('selectedUser :',selectedUser)
+      //g('selectedUser :',selectedUser)
       await api.createUser(selectedUser);
      
       loadUsers();

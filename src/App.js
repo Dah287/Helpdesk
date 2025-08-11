@@ -13,40 +13,138 @@ import UserManagement from './components/UserManagement';
 import ChefBureau from './components/PagesProcessus/ChefBureau';
 import TicketsComponent from './components/TicketsComponent';
 import DashboardComponent from './components/DashboardComponent';
+
 function App() {
   return (
     <Router>
       <CssBaseline />
-      <Container maxWidth="lg" style={{ padding: '0px',marginLeft: '100px' }}>
-        <Routes>
-          {/* <Route path="/" element={<Login />} />
-          <Route path="/ticketsPage" element={<TicketsPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/new-ticket" element={<NewTicketPage />} />
-          <Route path="/tickets/:id/edit" element={<NewTicketPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/c-s-v" element={<ChefServiceList />} />
-          <Route path="/c-d-v" element={<ChefDepV />} />
-          <Route path="/c-d-si" element={<ChefDepSI />} /> */}
+      <Routes>
+        {/* Routes publiques (login) sans container */}
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-
-          <Route path="/ticketsPage" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
-          <Route path="/new-ticket" element={<PrivateRoute><NewTicketPage /></PrivateRoute>} />
-          <Route path="/tickets/:id/edit" element={<PrivateRoute><NewTicketPage /></PrivateRoute>} />
-          <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
-          <Route path="/c-s-v" element={<PrivateRoute><ChefServiceList /></PrivateRoute>} />
-          <Route path="/c-b-v" element={<PrivateRoute><ChefBureau/></PrivateRoute>} />
-          <Route path="/c-d-v" element={<PrivateRoute><ChefDepV /></PrivateRoute>} />
-          <Route path="/c-d-si" element={<PrivateRoute><ChefDepSI /></PrivateRoute>} />
-          <Route path="/user" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
-          {/* <Route path="/admin/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} /> */}
-          <Route path="/admin/Tickets" element={<PrivateRoute><TicketsComponent /></PrivateRoute>} />
-          <Route path="/admin/Dashboard" element={<PrivateRoute><DashboardComponent /></PrivateRoute>} />
-          <Route path="/admin/user" element={<PrivateRoute><UserManagement /></PrivateRoute>} />
-        </Routes>
-      </Container>
+        {/* Routes privées avec Container */}
+        <Route 
+          path="/ticketsPage" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <TicketsPage />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/new-ticket" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <NewTicketPage />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/tickets/:id/edit" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <NewTicketPage />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <AdminDashboard />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/c-s-v" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <ChefServiceList />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/c-b-v" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <ChefBureau />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/c-d-v" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <ChefDepV />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/c-d-si" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <ChefDepSI />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/user" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <UserManagement />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/Tickets" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <TicketsComponent />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/Dashboard" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <DashboardComponent />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/admin/user" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <UserManagement />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+      </Routes>
     </Router>
   );
 }
