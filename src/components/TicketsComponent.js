@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  Box, CssBaseline, AppBar, Toolbar, Typography, 
+  Box, CssBaseline, AppBar, Toolbar, Typography, Checkbox,FormControlLabel,
   Avatar, Drawer, List, ListItem, ListItemIcon, 
   ListItemText, Grid, Card, CardContent, TextField,
   Button, Select, MenuItem, FormControl, InputLabel,
@@ -54,11 +54,57 @@ const [serviceSearch, setServiceSearch] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
+const [selectedSolutions, setSelectedSolutions] = useState([]);
+
+useEffect(() => {
+  const formatted = formatAppliedSolution();
+  setSelectedTicket(prev => ({
+    ...prev,
+    appliedSolution: formatted
+  }));
+}, [selectedSolutions]);
+const solutions = [
+  "Fourniture et remplacement de Carte mère (PC Fixe)",
+  "Fourniture et remplacement de Carte mère (PC Portable)",
+  "Fourniture et remplacement de Ventilateur du CPU",
+  "Fourniture et remplacement de RAM 8Go (PC Fixe)",
+  "Fourniture et remplacement de RAM 8Go (PC Portable)",
+  "Fourniture et remplacement de Disque dur 1 To",
+  "Fourniture et remplacement de Bloc d'alimentation",
+  "Fourniture et remplacement de Ventilateur UC (PC Fixe)",
+  "Fourniture et remplacement de Clavier (PC Portable)",
+  "Fourniture et remplacement de Souris (PC Portable)",
+  "Fourniture et remplacement de l'Ecran",
+  "Installation complète du Système : Windows, Office, ...",
+  "Fourniture et remplacement de la carte mère",
+  "Fourniture et remplacement de Bloc d'alimentation",
+  "Fourniture et remplacement de l'acteur papier",
+  "Fourniture et remplacement de Roller d'entraînement papier",
+  "Fourniture et remplacement d'Eprouvette papier",
+  "Fourniture et remplacement de Kit de fusion (laser)",
+  "Fourniture et remplacement de Kit de fusion (Couleur)",
+  "Fourniture et remplacement de Kit de transfert",
+  "Fourniture et remplacement de Four (Couleur)",
+  "Fourniture et remplacement de Carte d'alimentation",
+  "Fourniture et remplacement de Ram",
+  "Fourniture et remplacement de Carte d'interface",
+  "Fourniture et remplacement de Roller d'entraînement papier",
+  "Fourniture et remplacement de Détecteur de papier",
+];
 
 
+const toggleSolution = (solution) => {
+  setSelectedSolutions((prev) =>
+    prev.includes(solution)
+      ? prev.filter((s) => s !== solution)
+      : [...prev, solution]
+  );
+};
 
-
-
+const formatAppliedSolution = () => {
+  if (selectedSolutions.length === 0) return '';
+  return selectedSolutions.map(s => `- ${s}`).join('\n');
+};
 
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [ticketToResolve, setTicketToResolve] = useState(null);
@@ -184,8 +230,8 @@ const generateChartData = (tickets) => {
         };
   
         const [ticketsRes, usersRes] = await Promise.all([
-          fetch('http://192.168.1.42:8082/api/tickets', { headers }),
-          fetch('http://192.168.1.42:8082/api/utilisateurs', { headers }),
+          fetch('http://192.168.1.14:8083/api/tickets', { headers }),
+          fetch('http://192.168.1.14:8083/api/utilisateurs', { headers }),
         ]);
   
         //g("ticketsRes :", ticketsRes);
@@ -359,7 +405,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     const handleDownloadReport = async (ticketId) => {
       try {
         const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
-        const response = await fetch(`http://192.168.1.42:8082/api/tickets/${ticketId}/rapport`, {
+        const response = await fetch(`http://192.168.1.14:8083/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf',
@@ -901,30 +947,48 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         />
       </Box>
 
-      <Box sx={{ mb: 1 }}>
-        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <CheckCircleOutlineIcon sx={{ mr: 1, color: 'success.main' }} />
-          Solution effectuée
-        </Typography>
-        <TextField
-          required
-          multiline
-          fullWidth
-          rows={3}
-          variant="outlined"
-          value={selectedTicket?.appliedSolution || ''}
-          onChange={(e) =>
-            setSelectedTicket((prev) => ({
-              ...prev,
-              appliedSolution: e.target.value,
-            }))
-          }
-          error={!selectedTicket?.appliedSolution}
-          helperText={
-            !selectedTicket?.appliedSolution ? "Ce champ est obligatoire." : ""
-          }
-        />
-      </Box>
+<Box sx={{ mb: 1 }}>
+  <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+    <CheckCircleOutlineIcon sx={{ mr: 1, color: 'success.main' }} />
+    Solution effectuée
+  </Typography>
+
+  {/* Liste des solutions possibles */}
+  <Box sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 1 }}>
+    {solutions.map((solution, index) => (
+      <FormControlLabel
+        key={index}
+        control={
+          <Checkbox
+            checked={selectedSolutions.includes(solution)}
+            onChange={() => toggleSolution(solution)}
+            color="primary"
+          />
+        }
+        label={solution}
+        sx={{ display: 'flex', alignItems: 'flex-start', py: 0.5 }}
+      />
+    ))}
+  </Box>
+
+  {/* Affichage du résultat (champ masqué) */}
+  <TextField
+    required
+    multiline
+    fullWidth
+    rows={3}
+    variant="outlined"
+    value={formatAppliedSolution()}
+    disabled
+    InputProps={{
+      sx: { fontSize: 14 },
+    }}
+    error={!formatAppliedSolution()}
+    helperText={
+      !formatAppliedSolution() ? "Veuillez sélectionner au moins une solution." : ""
+    }
+  />
+</Box>
     </Box>
   </DialogContent>
 
@@ -943,9 +1007,9 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       variant="contained"
       color="success"
       onClick={() => {
-        if (selectedTicket?.foundProblem && selectedTicket?.appliedSolution) {
-          handleConfirmResolve();
-        }
+if (selectedTicket?.foundProblem && selectedTicket?.appliedSolution) {
+  handleConfirmResolve();
+}
       }}
       sx={{ borderRadius: 3, px: 3 }}
     >

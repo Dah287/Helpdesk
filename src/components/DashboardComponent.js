@@ -183,8 +183,8 @@ const generateChartData = (tickets) => {
         };
   
         const [ticketsRes, usersRes] = await Promise.all([
-          fetch('http://192.168.1.42:8082/api/tickets', { headers }),
-          fetch('http://192.168.1.42:8082/api/utilisateurs', { headers }),
+          fetch('http://192.168.1.14:8083/api/tickets', { headers }),
+          fetch('http://192.168.1.14:8083/api/utilisateurs', { headers }),
         ]);
   
         //g("ticketsRes :", ticketsRes);
@@ -363,7 +363,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     const handleDownloadReport = async (ticketId) => {
       try {
         const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
-        const response = await fetch(`http://192.168.1.42:8082/api/tickets/${ticketId}/rapport`, {
+        const response = await fetch(`http://192.168.1.14:8083/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf',

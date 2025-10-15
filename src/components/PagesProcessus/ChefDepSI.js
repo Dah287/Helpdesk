@@ -204,7 +204,7 @@ const shouldShowValidateButton = (ticket) => {
 
 <Box sx={{ p: 3, width: 'calc(170%  - 240px)', marginTop: '64px' }}>
       <Typography variant="h4" gutterBottom>
-        Chef Dep SI Validation
+        Chef Dep Validation
       </Typography>
       
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
