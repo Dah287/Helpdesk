@@ -58,11 +58,34 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.itextpdf</groupId>
-			<artifactId>itext7-core</artifactId>
-			<version>7.1.15</version>
-		</dependency>
+        <!-- iText 7 Kernel -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>kernel</artifactId>
+            <version>7.1.15</version>
+        </dependency>
+
+        <!-- iText 7 Layout -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>layout</artifactId>
+            <version>7.1.15</version>
+        </dependency>
+
+        <!-- iText 7 IO (optionnel, selon ton usage) -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>io</artifactId>
+            <version>7.1.15</version>
+        </dependency>
+
+        <!-- iText 7 PDF/A (optionnel, si tu génères des PDF conformes PDF/A) -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>pdfa</artifactId>
+            <version>7.1.15</version>
+        </dependency>
+
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>

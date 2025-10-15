@@ -26,10 +26,8 @@ import com.itextpdf.layout.element.Paragraph;
 //
 import java.io.*;
 import java.net.MalformedURLException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 //
@@ -46,6 +44,8 @@ import com.itextpdf.layout.element.*;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.layout.property.TextAlignment;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
+
 @Service
 @Transactional
 public class TicketService {
@@ -581,7 +581,7 @@ public class TicketService {
         addInfoRow(infoTable, "Numéro de ticket", String.valueOf(ticket.getId()), labelStyle, valueStyle);
         addInfoRow(infoTable, "Type de demande", String.valueOf(ticket.getTypeDemande()), labelStyle, valueStyle);
         addInfoRow(infoTable, "Priorité", String.valueOf(ticket.getPriority()), labelStyle, valueStyle);
-        addInfoRow(infoTable, "Statut", String.valueOf(ticket.getStatus()), labelStyle, valueStyle);
+        //addInfoRow(infoTable, "Statut", String.valueOf(ticket.getStatus()), labelStyle, valueStyle);
         addInfoRow(infoTable, "Description du problème",
                 ticket.getProblemDescription() != null ? ticket.getProblemDescription() : "Non renseigné",
                 labelStyle, valueStyle);
@@ -603,10 +603,10 @@ public class TicketService {
         addSectionHeader(infoTable, "LOCALISATION", sectionHeaderStyle);
 
         addInfoRow(infoTable, "Bureau",
-                ticket.getBureau() != null ? ticket.getBureau().getBureau() : "Non renseigné",
+                ticket.getBureau() != null  && !"NAN".equals(ticket.getBureau().getBureau()) ? ticket.getBureau().getBureau() : " - ",
                 labelStyle, valueStyle);
         addInfoRow(infoTable, "Service",
-                ticket.getService() != null ? ticket.getService().getName() : "Non renseigné",
+                ticket.getService() != null && !"NAN".equals(ticket.getService().getName())  ? ticket.getService().getName() : " - ",
                 labelStyle, valueStyle);
         addInfoRow(infoTable, "Département",
                 ticket.getDepartment() != null ? ticket.getDepartment().getName() : "Non renseigné",
@@ -620,8 +620,12 @@ public class TicketService {
             createdBy = ticket.getCreatedBy().getNom() + " " + ticket.getCreatedBy().getPrenom();
         }
         addInfoRow(infoTable, "Créé par", createdBy, labelStyle, valueStyle);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH);
+
         addInfoRow(infoTable, "Date de création",
-                ticket.getCreatedAt() != null ? ticket.getCreatedAt().toString() : "Non renseigné",
+                ticket.getCreatedAt() != null
+                        ? dateFormat.format(ticket.getCreatedAt())
+                        : "Non renseigné",
                 labelStyle, valueStyle);
 
         // === SECTION RÉSOLUTION ===
@@ -633,16 +637,19 @@ public class TicketService {
         addInfoRow(infoTable, "Solution effectuée",
                 ticket.getAppliedSolution() != null ? ticket.getAppliedSolution() : "Non renseignée",
                 labelStyle, valueStyle);
+
         addInfoRow(infoTable, "Date de résolution",
-                ticket.getDateResoluSI() != null ? ticket.getDateResoluSI().toString() : "Non renseignée",
+                ticket.getDateResoluSI() != null
+                        ? dateFormat.format(ticket.getDateResoluSI())
+                        : "Non renseignée",
                 labelStyle, valueStyle);
 
         // === SECTION DATES IMPORTANTES ===
-        addSectionHeader(infoTable, "SUIVI TEMPOREL", sectionHeaderStyle);
-
-        addInfoRow(infoTable, "Date de dernière modification",
-                ticket.getUpdatedAt() != null ? ticket.getUpdatedAt().toString() : "Non renseigné",
-                labelStyle, valueStyle);
+//        addSectionHeader(infoTable, "SUIVI TEMPOREL", sectionHeaderStyle);
+//
+//        addInfoRow(infoTable, "Date de dernière modification",
+//                ticket.getUpdatedAt() != null ? ticket.getUpdatedAt().toString() : "Non renseigné",
+//                labelStyle, valueStyle);
 
         document.add(infoTable);
     }
