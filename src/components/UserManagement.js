@@ -27,6 +27,8 @@ import api from '../services/api';
 import LogoutIcon from '@mui/icons-material/Logout';
 import useAutoLogout from '../pages/useAutoLogout';
 import { useNavigate } from 'react-router-dom';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
+import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 
 const UserManagement = () => {
   // État initial pour selectedUser avec toutes les propriétés nécessaires
@@ -214,7 +216,7 @@ useEffect(() => {
   };
 
   // Gestion de la navigation et du logout
-  const userData = localStorage.getItem('user');
+  const userData = sessionStorage.getItem('user');
   const parsedUser = userData ? JSON.parse(userData) : null;
   const displayUsername = parsedUser ? parsedUser.username.charAt(0).toUpperCase() : 'A';
 
@@ -232,7 +234,7 @@ useEffect(() => {
   };
   
   const handleLogout = () => {
-    localStorage.clear();
+    sessionStorage.clear();
     navigate('/');
   };
 
@@ -256,33 +258,60 @@ useEffect(() => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Gestion des Utilisateurs
           </Typography>
-          <IconButton color="inherit">
-            <NotificationsIcon />
-          </IconButton>
-          <IconButton onClick={handleAvatarClick} color="inherit">
-            <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClosee}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-          >
-            <MenuItem disabled>
-              <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
-              Déconnexion
-            </MenuItem>
-          </Menu>
+         {/* 🆘 Aide & Support */}
+<Tooltip title="Aide & Support">
+  <IconButton
+    color="inherit"
+    onClick={() =>
+      window.open(
+        "https://drive.google.com/drive/folders/1POWOkSsoqXDKTLHVIzFmqEOyZ5nG65fu?usp=sharing",
+        "_blank"
+      )
+    }
+  >
+    <SupportAgentIcon />
+  </IconButton>
+</Tooltip>
+
+
+{/* 🔔 Notifications */}
+<Tooltip title="Notifications">
+  <IconButton color="inherit">
+    <NotificationsIcon />
+  </IconButton>
+</Tooltip>
+    <IconButton onClick={handleAvatarClick} color="inherit">
+  <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
+</IconButton>
+<Menu
+  anchorEl={anchorEl}
+  open={open}
+  onClose={handleClosee}
+  anchorOrigin={{
+    vertical: 'bottom',
+    horizontal: 'right',
+  }}
+  transformOrigin={{
+    vertical: 'top',
+    horizontal: 'right',
+  }}
+>
+  <MenuItem disabled>
+    <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
+  </MenuItem>
+    {/* ✅ Nouveau MenuItem pour changer le mot de passe */}
+  <MenuItem onClick={() => {
+      handleClosee();               // fermer le menu
+      navigate('/change-password'); // rediriger vers la page changement de mot de passe
+  }}>
+    <Edit fontSize="small" sx={{ mr: 1 }} />
+    Changer mot de passe
+  </MenuItem>
+  <MenuItem onClick={handleLogout}>
+    <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+    Déconnexion
+  </MenuItem>
+</Menu>
         </Toolbar>
       </AppBar>
       

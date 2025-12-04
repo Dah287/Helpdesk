@@ -35,6 +35,8 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'; // 🔽 icône 
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { CircularProgress } from '@mui/material';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
+import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 const AdminDashboard = () => {
   const [tickets, setTickets] = useState([]);
@@ -171,7 +173,7 @@ const generateChartData = (tickets) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token'); // 👈 récupération du token
+        const token = sessionStorage.getItem('token'); // 👈 récupération du token
         if (!token) {
           console.error("Token manquant !");
           return;
@@ -321,10 +323,10 @@ const currentTickets = filteredTickets.slice(indexOfFirstItem, indexOfLastItem);
 const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 
-  const userData = localStorage.getItem('user');
-  const bureau_id = localStorage.getItem('bureau_id');
-  const service_id = localStorage.getItem('service_id');
-  const department_id = localStorage.getItem('department_id');
+  const userData = sessionStorage.getItem('user');
+  const bureau_id = sessionStorage.getItem('bureau_id');
+  const service_id = sessionStorage.getItem('service_id');
+  const department_id = sessionStorage.getItem('department_id');
   
   const parsedUser = userData ? JSON.parse(userData) : null;
   const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
@@ -350,13 +352,13 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     };
     
     const handleLogout = () => {
-      localStorage.clear(); // ou uniquement les clés que tu veux
+      sessionStorage.clear(); // ou uniquement les clés que tu veux
       navigate('/');
     };
 
     const handleDownloadReport = async (ticketId) => {
       try {
-        const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
+        const token = sessionStorage.getItem('token'); // Assure-toi que le token est bien récupéré
         const response = await fetch(`http://192.168.1.14:8083/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
@@ -400,16 +402,35 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Tableau de Bord Admin
           </Typography>
-          <IconButton color="inherit">
-            <NotificationsIcon />
-          </IconButton>
-          <IconButton onClick={handleAvatarClick} color="inherit">
+         {/* 🆘 Aide & Support */}
+<Tooltip title="Aide & Support">
+  <IconButton
+    color="inherit"
+    onClick={() =>
+      window.open(
+        "https://drive.google.com/drive/folders/1POWOkSsoqXDKTLHVIzFmqEOyZ5nG65fu?usp=sharing",
+        "_blank"
+      )
+    }
+  >
+    <SupportAgentIcon />
+  </IconButton>
+</Tooltip>
+
+
+{/* 🔔 Notifications */}
+<Tooltip title="Notifications">
+  <IconButton color="inherit">
+    <NotificationsIcon />
+  </IconButton>
+</Tooltip>
+    <IconButton onClick={handleAvatarClick} color="inherit">
   <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
 </IconButton>
 <Menu
   anchorEl={anchorEl}
   open={open}
-  onClose={handleClosee}
+  onClose={handleClose}
   anchorOrigin={{
     vertical: 'bottom',
     horizontal: 'right',
@@ -421,6 +442,14 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 >
   <MenuItem disabled>
     <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
+  </MenuItem>
+    {/* ✅ Nouveau MenuItem pour changer le mot de passe */}
+  <MenuItem onClick={() => {
+      handleClose();               // fermer le menu
+      navigate('/change-password'); // rediriger vers la page changement de mot de passe
+  }}>
+    <Edit fontSize="small" sx={{ mr: 1 }} />
+    Changer mot de passe
   </MenuItem>
   <MenuItem onClick={handleLogout}>
     <LogoutIcon fontSize="small" sx={{ mr: 1 }} />

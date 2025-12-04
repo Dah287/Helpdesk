@@ -11,7 +11,7 @@ const useAutoLogout = () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
         // Supprimer les données utilisateur
-        localStorage.clear();
+        sessionStorage.clear();
         navigate('/'); // Redirection vers la page de login
       }, 10 * 60 * 1000); // 5 minutes
     };

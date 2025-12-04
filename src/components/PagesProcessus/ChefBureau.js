@@ -14,6 +14,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
 import api from '../../services/api';
 
 const ChefBureau = () => {
@@ -25,10 +26,10 @@ const ChefBureau = () => {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   
-  const userData = localStorage.getItem('user');
-  const bureau_id = localStorage.getItem('bureau_id');
-  const service_id = localStorage.getItem('service_id');
-  const department_id = localStorage.getItem('department_id');
+  const userData = sessionStorage.getItem('user');
+  const bureau_id = sessionStorage.getItem('bureau_id');
+  const service_id = sessionStorage.getItem('service_id');
+  const department_id = sessionStorage.getItem('department_id');
   
   const parsedUser = userData ? JSON.parse(userData) : null;
   const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
@@ -123,7 +124,7 @@ const navigate = useNavigate();
   };
   
   const handleLogout = () => {
-    localStorage.clear(); // ou uniquement les clés que tu veux
+    sessionStorage.clear(); // ou uniquement les clés que tu veux
     navigate('/');
   };
   return (
@@ -139,9 +140,30 @@ const navigate = useNavigate();
       {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`} */}
     </Typography>
 
-    <IconButton color="inherit">
-      <NotificationsIcon />
-    </IconButton>
+
+
+{/* 🆘 Aide & Support */}
+<Tooltip title="Aide & Support">
+  <IconButton
+    color="inherit"
+    onClick={() =>
+      window.open(
+        "https://drive.google.com/drive/folders/1POWOkSsoqXDKTLHVIzFmqEOyZ5nG65fu?usp=sharing",
+        "_blank"
+      )
+    }
+  >
+    <SupportAgentIcon />
+  </IconButton>
+</Tooltip>
+
+
+{/* 🔔 Notifications */}
+<Tooltip title="Notifications">
+  <IconButton color="inherit">
+    <NotificationsIcon />
+  </IconButton>
+</Tooltip>
     <IconButton onClick={handleAvatarClick} color="inherit">
   <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
 </IconButton>
@@ -161,6 +183,14 @@ const navigate = useNavigate();
   <MenuItem disabled>
     <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
   </MenuItem>
+    {/* ✅ Nouveau MenuItem pour changer le mot de passe */}
+  <MenuItem onClick={() => {
+      handleClose();               // fermer le menu
+      navigate('/change-password'); // rediriger vers la page changement de mot de passe
+  }}>
+    <Edit fontSize="small" sx={{ mr: 1 }} />
+    Changer mot de passe
+  </MenuItem>
   <MenuItem onClick={handleLogout}>
     <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
     Déconnexion
@@ -170,9 +200,33 @@ const navigate = useNavigate();
 </AppBar>
 
 <Box sx={{ p: 3, width: 'calc(170% - 240px)', marginTop: '64px' }}>
-      <Typography variant="h4" gutterBottom>
-      Chef de Bureau Validation
-      </Typography>
+<Box
+  sx={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    mt: 3, // marge au-dessus
+    mb: 4, // ✅ marge en dessous pour séparer du tableau
+  }}
+>
+  <Box
+    sx={{
+      background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+      color: "white",
+      px: 4,
+      py: 2,
+      borderRadius: "16px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+      textAlign: "center",
+    }}
+  >
+    <Typography variant="h5" sx={{ fontWeight: "bold", letterSpacing: 1 }}>
+      Espace Chef de bureau
+    </Typography>
+  </Box>
+</Box>
+
+
       
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <Button 
@@ -301,7 +355,8 @@ const navigate = useNavigate();
       color="error"
       startIcon={<Delete />}
       onClick={() => handleDelete(ticket.id)}
-      disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+      //disabled={String(ticket.createdBy?.id) !== String(parsedUser.id)}
+      disabled
     >
       Supprimer
     </Button>

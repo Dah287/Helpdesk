@@ -14,7 +14,7 @@ const axiosInstance = axios.create({
 // ➕ Intercepteur pour ajouter le token à chaque requête
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     //g("Token utilisé :", token); // 👈 Ajout du log
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Gérer la déconnexion si le token est invalide
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       window.location.href = '/login'; // Rediriger vers la page de login
     }
     return Promise.reject(error);

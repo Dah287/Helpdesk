@@ -33,18 +33,22 @@ const Login = () => {
       });
       //g(response.data.user.role);  // Affiche la réponse complète
       // Stockage du token et des infos utilisateur
-     // localStorage.setItem('token', response.data.user.token);
-     localStorage.setItem('token', response.data.token);
+     // sessionStorage.setItem('token', response.data.user.token);
+     sessionStorage.setItem('token', response.data.token);
      //g('token :',response.data.token);
-      localStorage.setItem('user_id', JSON.stringify(response.data.user.id));
-      localStorage.setItem('department_id', JSON.stringify(response.data.user.department));
-      localStorage.setItem('service_id', JSON.stringify(response.data.user.service));
-      localStorage.setItem('bureau_id', JSON.stringify(response.data.user.bureau));
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      sessionStorage.setItem('user_id', JSON.stringify(response.data.user.id));
+      sessionStorage.setItem('department_id', JSON.stringify(response.data.user.department));
+      sessionStorage.setItem('service_id', JSON.stringify(response.data.user.service));
+      sessionStorage.setItem('bureau_id', JSON.stringify(response.data.user.bureau));
+      sessionStorage.setItem('user', JSON.stringify(response.data.user));
 
 
       // 
-
+// Vérifier si c'est la première connexion
+if (response.data.user.firstLogin === true) {
+  navigate('/change-password');
+  return; // Stoppe ici pour ne pas aller vers les pages selon le rôle
+}
       
       
       //g("dep :",response.data.user.department.id)

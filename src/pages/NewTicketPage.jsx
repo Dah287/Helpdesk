@@ -12,11 +12,11 @@ const TicketFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Récupérer l'utilisateur connecté depuis le localStorage
-  const userData = localStorage.getItem('user');
-  const bureau_id = localStorage.getItem('bureau_id');
-  const service_id = localStorage.getItem('service_id');
-  const department_id = localStorage.getItem('department_id');
+  // Récupérer l'utilisateur connecté depuis le sessionStorage
+  const userData = sessionStorage.getItem('user');
+  const bureau_id = sessionStorage.getItem('bureau_id');
+  const service_id = sessionStorage.getItem('service_id');
+  const department_id = sessionStorage.getItem('department_id');
   const parseddepartment_id = department_id ? JSON.parse(department_id) : null;
   const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
   const parsedservice_id = service_id ? JSON.parse(service_id) : null;

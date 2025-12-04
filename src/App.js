@@ -13,7 +13,7 @@ import UserManagement from './components/UserManagement';
 import ChefBureau from './components/PagesProcessus/ChefBureau';
 import TicketsComponent from './components/TicketsComponent';
 import DashboardComponent from './components/DashboardComponent';
-
+import ChangePassword from './pages/ChangePassword';
 function App() {
   return (
     <Router>
@@ -140,6 +140,16 @@ function App() {
             <PrivateRoute>
               <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
                 <UserManagement />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+                <Route 
+          path="/change-password" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <ChangePassword />
               </Container>
             </PrivateRoute>
           } 

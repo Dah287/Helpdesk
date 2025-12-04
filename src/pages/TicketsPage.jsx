@@ -19,13 +19,13 @@ const TicketsPage = () => {
   const [search, setSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Récupérer l'élément 'user' du localStorage
-const userData = localStorage.getItem('user');
+  // Récupérer l'élément 'user' du sessionStorage
+const userData = sessionStorage.getItem('user');
 const [allTickets, setAllTickets] = useState([]);  // référence complète
 
-const bureau_id = localStorage.getItem('bureau_id');
-const service_id = localStorage.getItem('service_id');
-const department_id = localStorage.getItem('department_id');
+const bureau_id = sessionStorage.getItem('bureau_id');
+const service_id = sessionStorage.getItem('service_id');
+const department_id = sessionStorage.getItem('department_id');
 const parseddepartment_id = department_id ? JSON.parse(department_id) : null;
 const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
 const parsedservice_id = service_id ? JSON.parse(service_id) : null;
@@ -119,7 +119,7 @@ const navigate = useNavigate();
   };
   
   const handleLogout = () => {
-    localStorage.clear(); // ou uniquement les clés que tu veux
+    sessionStorage.clear(); // ou uniquement les clés que tu veux
     navigate('/');
   };
   return (
@@ -166,9 +166,31 @@ const navigate = useNavigate();
 
       {/* Main content */}
       <Box sx={{ p: 3, width: 'calc(160% - 240px)', marginTop: '64px' }}>
-        <Typography variant="h4" gutterBottom>
-          Gestion des Tickets
-        </Typography>
+<Box
+  sx={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    mt: 3, // marge au-dessus
+    mb: 4, // ✅ marge en dessous pour séparer du tableau
+  }}
+>
+  <Box
+    sx={{
+      background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+      color: "white",
+      px: 4,
+      py: 2,
+      borderRadius: "16px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+      textAlign: "center",
+    }}
+  >
+    <Typography variant="h5" sx={{ fontWeight: "bold", letterSpacing: 1 }}>
+       Espace de création de ticket
+    </Typography>
+  </Box>
+</Box>
         
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <Button 
@@ -273,6 +295,7 @@ const navigate = useNavigate();
                           color="error"
                           startIcon={<Delete />}
                           onClick={() => handleDelete(ticket.id)}
+                          disabled
                         >
                           Supprimer
                         </Button>

@@ -35,6 +35,8 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'; // 🔽 icône 
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { CircularProgress } from '@mui/material';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
+import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
@@ -219,7 +221,7 @@ const generateChartData = (tickets) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token'); // 👈 récupération du token
+        const token = sessionStorage.getItem('token'); // 👈 récupération du token
         if (!token) {
           console.error("Token manquant !");
           return;
@@ -369,10 +371,10 @@ const currentTickets = filteredTickets.slice(indexOfFirstItem, indexOfLastItem);
 const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 
-  const userData = localStorage.getItem('user');
-  const bureau_id = localStorage.getItem('bureau_id');
-  const service_id = localStorage.getItem('service_id');
-  const department_id = localStorage.getItem('department_id');
+  const userData = sessionStorage.getItem('user');
+  const bureau_id = sessionStorage.getItem('bureau_id');
+  const service_id = sessionStorage.getItem('service_id');
+  const department_id = sessionStorage.getItem('department_id');
   
   const parsedUser = userData ? JSON.parse(userData) : null;
   const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
@@ -398,13 +400,13 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     };
     
     const handleLogout = () => {
-      localStorage.clear(); // ou uniquement les clés que tu veux
+      sessionStorage.clear(); // ou uniquement les clés que tu veux
       navigate('/');
     };
 
     const handleDownloadReport = async (ticketId) => {
       try {
-        const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
+        const token = sessionStorage.getItem('token'); // Assure-toi que le token est bien récupéré
         const response = await fetch(`http://192.168.1.14:8083/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
@@ -448,10 +450,29 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Tableau de Bord Admin
           </Typography>
-          <IconButton color="inherit">
-            <NotificationsIcon />
-          </IconButton>
-          <IconButton onClick={handleAvatarClick} color="inherit">
+          {/* 🆘 Aide & Support */}
+<Tooltip title="Aide & Support">
+  <IconButton
+    color="inherit"
+    onClick={() =>
+      window.open(
+        "https://drive.google.com/drive/folders/1POWOkSsoqXDKTLHVIzFmqEOyZ5nG65fu?usp=sharing",
+        "_blank"
+      )
+    }
+  >
+    <SupportAgentIcon />
+  </IconButton>
+</Tooltip>
+
+
+{/* 🔔 Notifications */}
+<Tooltip title="Notifications">
+  <IconButton color="inherit">
+    <NotificationsIcon />
+  </IconButton>
+</Tooltip>
+    <IconButton onClick={handleAvatarClick} color="inherit">
   <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
 </IconButton>
 <Menu
@@ -469,6 +490,14 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 >
   <MenuItem disabled>
     <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
+  </MenuItem>
+    {/* ✅ Nouveau MenuItem pour changer le mot de passe */}
+  <MenuItem onClick={() => {
+      handleClosee();               // fermer le menu
+      navigate('/change-password'); // rediriger vers la page changement de mot de passe
+  }}>
+    <Edit fontSize="small" sx={{ mr: 1 }} />
+    Changer mot de passe
   </MenuItem>
   <MenuItem onClick={handleLogout}>
     <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
@@ -525,16 +554,43 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         {/* Section Tableau des Tickets */}
         <Card>
           <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h5">Gestion des Tickets</Typography>
-              <Button 
-                variant="contained" 
-                startIcon={<RefreshIcon />}
-                onClick={loadTickets}
-              >
-                Actualiser
-              </Button>
-            </Box>
+           <Box
+  sx={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+    color: "white",
+    px: 4,
+    py: 2,
+    borderRadius: "16px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+    mb: 3, // ✅ espace sous le cadre
+  }}
+>
+  <Typography variant="h5" sx={{ fontWeight: "bold", letterSpacing: 1 }}>
+    Gestion des Tickets
+  </Typography>
+
+  <Button
+    variant="contained"
+    onClick={loadTickets}
+    startIcon={<RefreshIcon />}
+    sx={{
+      backgroundColor: "white",
+      color: "#1976d2",
+      fontWeight: "bold",
+      "&:hover": {
+        backgroundColor: "#e3f2fd",
+      },
+      borderRadius: "10px",
+      textTransform: "none",
+    }}
+  >
+    Actualiser
+  </Button>
+</Box>
+
 
             <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
   {/* Recherche générale */}
@@ -733,155 +789,276 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         ))}
                 </TableBody>
                  {/* Ajoutez ce dialogue à la fin de votre composant view */}
-                 <Dialog 
-  open={openDialog} 
+<Dialog
+  open={openDialog}
   onClose={() => setOpenDialog(false)}
   maxWidth="md"
   fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: 3,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+      background: "linear-gradient(180deg, #ffffff, #f5f7fa)",
+    },
+  }}
 >
-  <DialogTitle>Détails du Ticket #{selectedTicket?.id}</DialogTitle>
-  <DialogContent dividers>
+  <DialogTitle
+    sx={{
+      fontWeight: "bold",
+      color: "#1565c0",
+      fontSize: "1.5rem",
+      textAlign: "center",
+      borderBottom: "2px solid #e0e0e0",
+      pb: 1,
+    }}
+  >
+    🎫 Détails du Ticket #{selectedTicket?.id}
+  </DialogTitle>
+
+  <DialogContent dividers sx={{ p: 4 }}>
     {selectedTicket && (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        {/* 🧾 Description */}
         <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              color: "#1976d2",
+              mb: 1,
+            }}
+          >
             Description complète
           </Typography>
-          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
+          <Typography
+            paragraph
+            sx={{
+              whiteSpace: "pre-line",
+              color: "#424242",
+              backgroundColor: "#f9f9f9",
+              borderRadius: 2,
+              p: 2,
+              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+            }}
+          >
             {selectedTicket.problemDescription}
           </Typography>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-          Type de demande
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              color: "#1976d2",
+              mt: 2,
+              mb: 1,
+            }}
+          >
+            Type de demande
           </Typography>
-          <Typography paragraph sx={{ whiteSpace: 'pre-line' }}>
+          <Typography
+            paragraph
+            sx={{
+              whiteSpace: "pre-line",
+              color: "#424242",
+              backgroundColor: "#f9f9f9",
+              borderRadius: 2,
+              p: 2,
+              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+            }}
+          >
             {selectedTicket.typeDemande}
           </Typography>
         </Box>
 
+        {/* 📋 Informations principales */}
         <Grid container spacing={2}>
-          {/* Section 1: Informations de base */}
+          {[
+            { label: "Numéro de série", value: selectedTicket.serialNumber },
+            { label: "Bureau", value: selectedTicket.bureau?.bureau },
+            { label: "Département", value: selectedTicket.department?.name },
+            { label: "Service", value: selectedTicket.service?.name },
+            {
+              label: "Type d'équipement",
+              value: `${selectedTicket.equipmentType || ""}${
+                selectedTicket.brand ? ` (${selectedTicket.brand})` : ""
+              }`,
+            },
+          ].map((item, index) => (
+            <Grid item xs={6} sm={4} key={index}>
+              <Typography variant="subtitle2" sx={{ color: "#1976d2" }}>
+                {item.label}
+              </Typography>
+              <Typography color="text.secondary">
+                {item.value || "-"}
+              </Typography>
+            </Grid>
+          ))}
+
           <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Numéro de série</Typography>
-            <Typography>{selectedTicket.serialNumber || '-'}</Typography>
+            <Typography variant="subtitle2" sx={{ color: "#1976d2" }}>
+              Priorité
+            </Typography>
+            <Chip
+              label={selectedTicket.priority}
+              color={
+                selectedTicket.priority === "HIGH"
+                  ? "error"
+                  : selectedTicket.priority === "MEDIUM"
+                  ? "warning"
+                  : "default"
+              }
+            />
           </Grid>
+
           <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Bureau</Typography>
-            <Typography>{selectedTicket.bureau?.bureau || '-'}</Typography>
+            <Typography variant="subtitle2" sx={{ color: "#1976d2" }}>
+              Statut
+            </Typography>
+            <Chip
+              label={selectedTicket.status}
+              color={
+                selectedTicket.status === "OPEN"
+                  ? "primary"
+                  : selectedTicket.status === "IN_PROGRESS"
+                  ? "warning"
+                  : "success"
+              }
+            />
           </Grid>
+
           <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Département</Typography>
-            <Typography>{selectedTicket.department?.name || '-'}</Typography>
-          </Grid>
-          
-          {/* Section 2: Informations supplémentaires */}
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Service</Typography>
-            <Typography>{selectedTicket.service?.name || '-'}</Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Type d'équipement</Typography>
-            <Typography>
-              {selectedTicket.equipmentType} 
-              {selectedTicket.brand && ` (${selectedTicket.brand})`}
+            <Typography variant="subtitle2" sx={{ color: "#1976d2" }}>
+              Créé par
+            </Typography>
+            <Typography color="text.secondary">
+              {selectedTicket.createdBy?.username || "Non spécifié"}
             </Typography>
           </Grid>
+
           <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Priorité</Typography>
-            <Chip 
-              label={selectedTicket.priority} 
-              color={
-                selectedTicket.priority === 'HIGH' ? 'error' : 
-                selectedTicket.priority === 'MEDIUM' ? 'warning' : 'default'
-              }
-            />
-          </Grid>
-          
-          {/* Section 3: Dates et statut */}
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Statut</Typography>
-            <Chip 
-              label={selectedTicket.status} 
-              color={
-                selectedTicket.status === 'OPEN' ? 'primary' : 
-                selectedTicket.status === 'IN_PROGRESS' ? 'warning' : 'success'
-              }
-            />
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Créé par</Typography>
-            <Typography>{selectedTicket.createdBy?.username || 'Non spécifié'}</Typography>
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Date de création</Typography>
-            <Typography>
+            <Typography variant="subtitle2" sx={{ color: "#1976d2" }}>
+              Date de création
+            </Typography>
+            <Typography color="text.secondary">
               {new Date(selectedTicket.createdAt).toLocaleString()}
             </Typography>
           </Grid>
+
           <Grid item xs={6} sm={4}>
-            <Typography variant="subtitle2">Dernière mise à jour</Typography>
-            <Typography>
-              {new Date(selectedTicket.updatedAt || selectedTicket.createdAt).toLocaleString()}
+            <Typography variant="subtitle2" sx={{ color: "#1976d2" }}>
+              Dernière mise à jour
+            </Typography>
+            <Typography color="text.secondary">
+              {new Date(
+                selectedTicket.updatedAt || selectedTicket.createdAt
+              ).toLocaleString()}
             </Typography>
           </Grid>
         </Grid>
 
-{/* Section pour d'autres détails si nécessaire */}
-<Box>
-  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>
-    Autres informations
-  </Typography>
+        {/* 💡 Section Lecture Seule : Problème + Solution */}
+        <Box
+          sx={{
+            mt: 3,
+            p: 3,
+            border: "1px solid #e0e0e0",
+            borderRadius: 3,
+            background: "#fdfdfd",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              color: "#1565c0",
+              mb: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            🔍 Diagnostic technique
+          </Typography>
 
-  <Box sx={{ mt: 2 }}>
-    <Typography variant="subtitle2">Problème trouvé</Typography>
-    <TextField
-      multiline
-      fullWidth
-      rows={3}
-      variant="outlined"
-      value={selectedTicket.foundProblem || ''}
-      onChange={(e) =>
-        setSelectedTicket((prev) => ({
-          ...prev,
-          foundProblem: e.target.value,
-        }))
-      }
-    />
-  </Box>
+          {/* Problème trouvé */}
+          <Box
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: 2,
+              p: 2,
+              mb: 2,
+              border: "1px solid #e0e0e0",
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#1976d2", mb: 1, fontWeight: "500" }}
+            >
+              Problème trouvé
+            </Typography>
+            <Typography
+              sx={{
+                whiteSpace: "pre-line",
+                color: "#333",
+                lineHeight: 1.6,
+                fontSize: "0.95rem",
+              }}
+            >
+              {selectedTicket.foundProblem || "Aucun problème renseigné"}
+            </Typography>
+          </Box>
 
-  <Box sx={{ mt: 2 }}>
-    <Typography variant="subtitle2">Solution effectuée</Typography>
-    <TextField
-      multiline
-      fullWidth
-      rows={3}
-      variant="outlined"
-      value={selectedTicket.appliedSolution || ''}
-      onChange={(e) =>
-        setSelectedTicket((prev) => ({
-          ...prev,
-          appliedSolution: e.target.value,
-        }))
-      }
-    />
-  </Box>
-
-  {/* ✅ Bouton pour valider */}
-  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-    <Button variant="contained" color="primary" onClick={handleInputChange}>
-      Valider les modifications
-    </Button>
-  </Box>
-</Box>
-
+          {/* Solution effectuée */}
+          <Box
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: 2,
+              p: 2,
+              border: "1px solid #e0e0e0",
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#1976d2", mb: 1, fontWeight: "500" }}
+            >
+              Solution effectuée
+            </Typography>
+            <Typography
+              sx={{
+                whiteSpace: "pre-line",
+                color: "#333",
+                lineHeight: 1.6,
+                fontSize: "0.95rem",
+              }}
+            >
+              {selectedTicket.appliedSolution || "Aucune solution renseignée"}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
     )}
   </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setOpenDialog(false)} color="primary">
+
+  <DialogActions sx={{ p: 2.5, justifyContent: "center" }}>
+    <Button
+      onClick={() => setOpenDialog(false)}
+      variant="contained"
+      sx={{
+        px: 4,
+        py: 1,
+        borderRadius: 2,
+        backgroundColor: "#1976d2",
+        "&:hover": {
+          backgroundColor: "#115293",
+        },
+      }}
+    >
       Fermer
     </Button>
   </DialogActions>
 </Dialog>
+
 
 {/* Ajoutez ce dialogue à la fin de votre composant Problème trouvé avant le resolution */}
 {/* Dialogue pour la résolution */}

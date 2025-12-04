@@ -171,7 +171,7 @@ const generateChartData = (tickets) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token'); // 👈 récupération du token
+        const token = sessionStorage.getItem('token'); // 👈 récupération du token
         if (!token) {
           console.error("Token manquant !");
           return;
@@ -321,10 +321,10 @@ const currentTickets = filteredTickets.slice(indexOfFirstItem, indexOfLastItem);
 const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
 
-  const userData = localStorage.getItem('user');
-  const bureau_id = localStorage.getItem('bureau_id');
-  const service_id = localStorage.getItem('service_id');
-  const department_id = localStorage.getItem('department_id');
+  const userData = sessionStorage.getItem('user');
+  const bureau_id = sessionStorage.getItem('bureau_id');
+  const service_id = sessionStorage.getItem('service_id');
+  const department_id = sessionStorage.getItem('department_id');
   
   const parsedUser = userData ? JSON.parse(userData) : null;
   const parsedbureau_id = bureau_id ? JSON.parse(bureau_id) : null;
@@ -350,13 +350,13 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     };
     
     const handleLogout = () => {
-      localStorage.clear(); // ou uniquement les clés que tu veux
+      sessionStorage.clear(); // ou uniquement les clés que tu veux
       navigate('/');
     };
 
     const handleDownloadReport = async (ticketId) => {
       try {
-        const token = localStorage.getItem('token'); // Assure-toi que le token est bien récupéré
+        const token = sessionStorage.getItem('token'); // Assure-toi que le token est bien récupéré
         const response = await fetch(`http://192.168.1.14:8083/api/tickets/${ticketId}/rapport`, {
           method: 'GET',
           headers: {
