@@ -14,6 +14,8 @@ import {
   ListAlt as TicketsIcon,
   People as UsersIcon,
   Settings as SettingsIcon,
+ BarChart as BarChartIcon,
+   Receipt as ReceiptIcon,  
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
   Refresh as RefreshIcon,
@@ -26,9 +28,11 @@ import { Pagination } from '@mui/material';
 import api from '../services/api';
 import LogoutIcon from '@mui/icons-material/Logout';
 import useAutoLogout from '../pages/useAutoLogout';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
 import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
+import Autocomplete from '@mui/material/Autocomplete';
+
 
 const UserManagement = () => {
   // État initial pour selectedUser avec toutes les propriétés nécessaires
@@ -75,6 +79,11 @@ const loadBureaux = async () => {
     }
   };
   
+
+const location = useLocation();
+const currentPath = location.pathname;
+const isActive = (path) => currentPath === path;
+
   // Chargement des services
   const loadServices = async () => {
     try {
@@ -190,7 +199,7 @@ useEffect(() => {
         console.error("ID utilisateur manquant");
         return;
       }
-      
+      console.log("selectedUser is ------------------------------> ",selectedUser)
       await api.updateUser(selectedUser.id, selectedUser);
       loadUsers();
       setOpenDialog(false);
@@ -316,42 +325,143 @@ useEffect(() => {
       </AppBar>
       
       {/* Menu latéral */}
-      <Drawer
-        variant="persistent"
-        open={drawerOpen}
-        sx={{
-          width: 240,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 190, boxSizing: 'border-box' },
-        }}
-      >
-        <Toolbar />
+<Drawer
+  variant="persistent"
+  open={drawerOpen}
+  sx={{
+    width: 0,
+    flexShrink: 0,
+    [`& .MuiDrawer-paper`]: { width: 180, boxSizing: 'border-box' },
+  }}
+>
+  <Toolbar /> {/* Espace pour la barre d'appbar */}
+  
+  {/* 🔹 Nom de l'application + version */}
+  <Box
+    sx={{
+      px: 2,
+      py: 1.5,
+      backgroundColor: '#1976d2', // bleu primaire (selon votre thème)
+      color: 'white',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: '0.9rem',
+      borderBottom: '1px solid rgba(255,255,255,0.2)',
+    }}
+  >
+    <Typography variant="body2" noWrap>
+      IT GTickets
+    </Typography>
+    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+      v2.1.7
+    </Typography>
+  </Box>
         <Box sx={{ overflow: 'auto' }}>
-        <List>
+<List>
+  <ListItem
+    button
+    component="a"
+    href="/admin/Dashboard"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/Dashboard') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/Dashboard') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/Dashboard') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <BarChartIcon sx={{ color: isActive('/admin/Dashboard') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Dashboard" />
+  </ListItem>
 
-<ListItem button component="a" href="/admin/Dashboard" sx={{ color: 'inherit', textDecoration: 'none' }}>
-<ListItemIcon><UsersIcon /></ListItemIcon>
-<ListItemText primary="Dashboard" />
-</ListItem>
-<ListItem button component="a" href="/admin/Tickets" sx={{ color: 'inherit', textDecoration: 'none' }}>
-  <ListItemIcon><TicketsIcon /></ListItemIcon>
-  <ListItemText primary="Tickets" />
-</ListItem>
-<ListItem button component="a" href="/admin/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
-<ListItemIcon><UsersIcon /></ListItemIcon>
-<ListItemText primary="Utilisateurs" />
-</ListItem>
+  <ListItem
+    button
+    component="a"
+    href="/admin/Tickets"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/Tickets') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/Tickets') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/Tickets') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <TicketsIcon sx={{ color: isActive('/admin/Tickets') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Tickets" />
+  </ListItem>
 
-<ListItem button>
-  <ListItemIcon><SettingsIcon /></ListItemIcon>
-  <ListItemText primary="Paramètres" />
-</ListItem>
+  <ListItem
+    button
+    component="a"
+    href="/admin/user"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/user') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/user') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/user') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <UsersIcon sx={{ color: isActive('/admin/user') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Utilisateurs" />
+  </ListItem>
+
+  <ListItem
+    button
+    component="a"
+    href="/admin/vision-globale"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/vision-globale') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/vision-globale') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/vision-globale') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <ReceiptIcon sx={{ color: isActive('/admin/vision-globale') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Vision globale" />
+  </ListItem>
+
+  <ListItem
+    button
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/parametres') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/parametres') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/parametres') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+    onClick={() => navigate('/admin/parametres')}
+  >
+    <ListItemIcon>
+      <SettingsIcon sx={{ color: isActive('/admin/parametres') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Paramètres" />
+  </ListItem>
 </List>
         </Box>
       </Drawer>
 
       {/* Contenu principal */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' ,marginLeft: '80px',position:'absolute',width:'90%' }}>
         {/* Section Statistiques */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           {stats.map((stat, index) => (
@@ -386,7 +496,7 @@ useEffect(() => {
                 <Button 
                   variant="contained" 
                   startIcon={<AddIcon />}
-                  onClick={() => handleOpenDialog(null, true)}
+                  onClick={() => handleOpenDialog(null, false)}
                 >
                   Nouvel Utilisateur
                 </Button>
@@ -608,12 +718,15 @@ useEffect(() => {
                   <MenuItem value="CHEF_DEP">Chef de département</MenuItem>
                   <MenuItem value="CHEF_SI">Chef de Service</MenuItem>
                   <MenuItem value="CHEF_BUR">Chef de Bureau</MenuItem>
+                   <MenuItem value="Secretaire">Secretaire</MenuItem>
+                    <MenuItem value="NORMALE">Agent</MenuItem>
+                     {/* <MenuItem value="NORMALE_ALL">ATP</MenuItem> */}
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                    <InputLabel>Département</InputLabel>
+                    <InputLabel>Département / ATP</InputLabel>
                     <Select
                     value={selectedUser.department?.id || ''}
                     onChange={(e) => setSelectedUser({
@@ -633,49 +746,55 @@ useEffect(() => {
                 </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                    <InputLabel>Service</InputLabel>
-                    <Select
-                    value={selectedUser.service?.id || ''}
-                    onChange={(e) => setSelectedUser({
-                        ...selectedUser,
-                        service: { id: e.target.value }
-                    })}
-                    label="Service"
-                    disabled={!editMode && !!selectedUser.id}
-                    >
-                    <MenuItem value="">Sélectionnez un service</MenuItem>
-                    {services.map((service) => (
-                        <MenuItem key={service.id} value={service.id}>
-                        {service.name}
-                        </MenuItem>
-                    ))}
-                    </Select>
-                </FormControl>
-                </Grid>
+<Grid item xs={12} sm={6}>
+  <Autocomplete
+    options={services}
+    getOptionLabel={(option) => option.name || ''}
+    value={
+      services.find(s => s.id === selectedUser.service?.id) || null
+    }
+    onChange={(event, newValue) => {
+      setSelectedUser({
+        ...selectedUser,
+        service: newValue ? { id: newValue.id } : null
+      });
+    }}
+    disabled={!editMode && !!selectedUser.id}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        label="Service"
+        placeholder="Rechercher un service..."
+      />
+    )}
+  />
+</Grid>
 
-                <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                    <InputLabel>Bureau</InputLabel>
-                    <Select
-                    value={selectedUser.bureau?.id || ''}
-                    onChange={(e) => setSelectedUser({
-                        ...selectedUser,
-                        bureau: { id: e.target.value }
-                    })}
-                    label="Bureau"
-                    disabled={!editMode && !!selectedUser.id}
-                    >
-                    <MenuItem value="">Sélectionnez un bureau</MenuItem>
-                    {bureaux.map((bureau) => (
-                        <MenuItem key={bureau.id} value={bureau.id}>
-                        {bureau.bureau}
-                        </MenuItem>
-                    ))}
-                    </Select>
-                </FormControl>
-                </Grid>
+
+<Grid item xs={12} sm={6}>
+  <Autocomplete
+    options={bureaux}
+    getOptionLabel={(option) => option.bureau || ''}
+    value={
+      bureaux.find(b => b.id === selectedUser.bureau?.id) || null
+    }
+    onChange={(event, newValue) => {
+      setSelectedUser({
+        ...selectedUser,
+        bureau: newValue ? { id: newValue.id } : null
+      });
+    }}
+    disabled={!editMode && !!selectedUser.id}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        label="Bureau"
+        placeholder="Rechercher un bureau..."
+      />
+    )}
+  />
+</Grid>
+
               {!selectedUser.id && (
                 <Grid item xs={12} sm={6}>
                   <TextField

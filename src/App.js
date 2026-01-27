@@ -14,6 +14,8 @@ import ChefBureau from './components/PagesProcessus/ChefBureau';
 import TicketsComponent from './components/TicketsComponent';
 import DashboardComponent from './components/DashboardComponent';
 import ChangePassword from './pages/ChangePassword';
+import SuperAdminTickets from './components/SuperAdminTickets';
+import ParametresComponent from './components/ParametresComponent';
 function App() {
   return (
     <Router>
@@ -22,6 +24,7 @@ function App() {
         {/* Routes publiques (login) sans container */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/Parametres" element={<ParametresComponent />} />
 
         {/* Routes privées avec Container */}
         <Route 
@@ -55,15 +58,28 @@ function App() {
           } 
         />
         <Route 
-          path="/admin" 
+          path="/admin/parametres" 
           element={
             <PrivateRoute>
               <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
-                <AdminDashboard />
+                <ParametresComponent />
               </Container>
             </PrivateRoute>
           } 
         />
+
+        <Route 
+          path="/admin/vision-globale" 
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" style={{ padding: '0px', marginLeft: '100px' }}>
+                <SuperAdminTickets />
+              </Container>
+            </PrivateRoute>
+          } 
+        />
+
+
         <Route 
           path="/c-s-v" 
           element={

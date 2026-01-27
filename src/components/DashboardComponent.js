@@ -13,6 +13,8 @@ import {
   ListAlt as TicketsIcon,
   People as UsersIcon,
   Settings as SettingsIcon,
+ BarChart as BarChartIcon,
+   Receipt as ReceiptIcon,
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
   Refresh as RefreshIcon,
@@ -29,7 +31,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import api from '../services/api';
 import LogoutIcon from '@mui/icons-material/Logout';
 import useAutoLogout from '../pages/useAutoLogout';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
 import { Add, Edit, Delete ,CheckCircle} from '@mui/icons-material';
 import EngineeringIcon from '@mui/icons-material/Engineering';
@@ -43,7 +45,8 @@ const DashboardComponent = () => {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  
+  const [period, setPeriod] = useState('6'); // '6' | '12' | 'all'
+
 
   const [searchTerm, setSearchTerm] = useState('');
 const [serialNumberSearch, setSerialNumberSearch] = useState('');
@@ -55,8 +58,9 @@ const [serviceSearch, setServiceSearch] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
 
 
-
-
+const location = useLocation();
+const currentPath = location.pathname;
+const isActive = (path) => currentPath === path;
 
 
 
@@ -99,48 +103,66 @@ const [serviceSearch, setServiceSearch] = useState('');
 // implémenter le chartData à partir des données de l'API
 const [chartData, setChartData] = useState([]);
 const [loadingChart, setLoadingChart] = useState(true);
+const ALLOWED_STATUSES = ["SI_SERVICE", "EN_COURS", "TRANS_SM", "RESOLU"];
 
 // Fonction pour générer les données du graphique
-const generateChartData = (tickets) => {
-  // Grouper les tickets par mois
-  const monthlyData = tickets.reduce((acc, ticket) => {
-    const date = new Date(ticket.createdAt);
-    const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-    
-    if (!acc[monthYear]) {
-      acc[monthYear] = 0;
-    }
-    acc[monthYear]++;
-    
-    return acc;
-  }, {});
+const generateChartData = (tickets, period) => {
 
-  // Convertir en format adapté pour Recharts
-  const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+  // ✅ 1. Filtrer les tickets par statut
+  const filteredTickets = tickets.filter(ticket =>
+    ALLOWED_STATUSES.includes(ticket.status)
+  );
+
+  const monthlyData = {};
+
+  filteredTickets.forEach(ticket => {
+    const date = new Date(ticket.createdAt.replace(' ', 'T'));
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    monthlyData[key] = (monthlyData[key] || 0) + 1;
+  });
+
+  const monthsNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
-  
-  const currentYear = new Date().getFullYear();
-  const last6Months = [];
-  
-  // Créer les 6 derniers mois
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    
-    const month = date.getMonth();
-    const year = date.getFullYear();
-    const key = `${year}-${month + 1}`;
-    
-    last6Months.push({
-      name: `${months[month]} ${year === currentYear ? '' : year}`,
-      tickets: monthlyData[key] || 0
-    });
+
+  let monthsToShow = [];
+
+  if (period === 'all') {
+    monthsToShow = Object.keys(monthlyData)
+      .sort()
+      .map(key => {
+        const [year, month] = key.split('-');
+        return new Date(year, month);
+      });
+  } else {
+    const count = parseInt(period);
+    let startYear = 2025;
+    let startMonth = 11; // Décembre
+
+    for (let i = 0; i < count; i++) {
+      let month = startMonth + i;
+      let year = startYear;
+
+      while (month > 11) {
+        month -= 12;
+        year += 1;
+      }
+
+      monthsToShow.push(new Date(year, month));
+    }
   }
 
-  return last6Months;
+  return monthsToShow.map(d => {
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    return {
+      name: `${monthsNames[d.getMonth()]} ${d.getFullYear()}`,
+      tickets: monthlyData[key] || 0
+    };
+  });
 };
+
+
 
 
 
@@ -170,6 +192,13 @@ const generateChartData = (tickets) => {
 
 
   }, []);
+
+  useEffect(() => {
+  if (tickets.length > 0) {
+    setChartData(generateChartData(tickets, period));
+  }
+}, [period, tickets]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -214,7 +243,8 @@ const generateChartData = (tickets) => {
      
         ]);
   
-        setChartData(generateChartData(tickets));
+    setChartData(generateChartData(tickets, period));
+
         setLoadingChart(false);
   
       } catch (error) {
@@ -466,37 +496,138 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       </AppBar>
       
       {/* Menu latéral */}
-      <Drawer
-        variant="persistent"
-        open={drawerOpen}
-        sx={{
-          width: 0,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 190, boxSizing: 'border-box' },
-        }}
-      >
-        <Toolbar /> {/* Espace pour la barre d'appbar */}
+<Drawer
+  variant="persistent"
+  open={drawerOpen}
+  sx={{
+    width: 0,
+    flexShrink: 0,
+    [`& .MuiDrawer-paper`]: { width: 180, boxSizing: 'border-box' },
+  }}
+>
+  <Toolbar /> {/* Espace pour la barre d'appbar */}
+  
+  {/* 🔹 Nom de l'application + version */}
+  <Box
+    sx={{
+      px: 2,
+      py: 1.5,
+      backgroundColor: '#1976d2', // bleu primaire (selon votre thème)
+      color: 'white',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: '0.9rem',
+      borderBottom: '1px solid rgba(255,255,255,0.2)',
+    }}
+  >
+    <Typography variant="body2" noWrap>
+      IT GTickets
+    </Typography>
+    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+      v2.1.7
+    </Typography>
+  </Box>
         <Box sx={{ overflow: 'auto' }}>
-          <List>
+<List>
+  <ListItem
+    button
+    component="a"
+    href="/admin/Dashboard"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/Dashboard') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/Dashboard') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/Dashboard') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <BarChartIcon sx={{ color: isActive('/admin/Dashboard') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Dashboard" />
+  </ListItem>
 
-            <ListItem button component="a" href="/admin/Dashboard" sx={{ color: 'inherit', textDecoration: 'none' }}>
-            <ListItemIcon><UsersIcon /></ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItem>
-          <ListItem button component="a" href="/admin/Tickets" sx={{ color: 'inherit', textDecoration: 'none' }}>
-              <ListItemIcon><TicketsIcon /></ListItemIcon>
-              <ListItemText primary="Tickets" />
-            </ListItem>
-            <ListItem button component="a" href="/admin/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
-            <ListItemIcon><UsersIcon /></ListItemIcon>
-            <ListItemText primary="Utilisateurs" />
-          </ListItem>
+  <ListItem
+    button
+    component="a"
+    href="/admin/Tickets"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/Tickets') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/Tickets') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/Tickets') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <TicketsIcon sx={{ color: isActive('/admin/Tickets') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Tickets" />
+  </ListItem>
 
-            <ListItem button>
-              <ListItemIcon><SettingsIcon /></ListItemIcon>
-              <ListItemText primary="Paramètres" />
-            </ListItem>
-          </List>
+  <ListItem
+    button
+    component="a"
+    href="/admin/user"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/user') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/user') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/user') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <UsersIcon sx={{ color: isActive('/admin/user') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Utilisateurs" />
+  </ListItem>
+
+  <ListItem
+    button
+    component="a"
+    href="/admin/vision-globale"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/vision-globale') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/vision-globale') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/vision-globale') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <ReceiptIcon sx={{ color: isActive('/admin/vision-globale') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Vision globale" />
+  </ListItem>
+
+  <ListItem
+    button
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/parametres') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/parametres') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/parametres') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+    onClick={() => navigate('/admin/parametres')}
+  >
+    <ListItemIcon>
+      <SettingsIcon sx={{ color: isActive('/admin/parametres') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Paramètres" />
+  </ListItem>
+</List>
         </Box>
       </Drawer>
 
@@ -529,6 +660,21 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
                 <Typography variant="h6" gutterBottom>
                   Tickets par mois
                 </Typography>
+
+<FormControl size="small" sx={{ mb: 2, minWidth: 200 }}>
+  <InputLabel>Période</InputLabel>
+  <Select
+    value={period}
+    label="Période"
+    onChange={(e) => setPeriod(e.target.value)}
+  >
+    <MenuItem value="6">6 derniers mois</MenuItem>
+    {/* <MenuItem value="12">12 derniers mois</MenuItem> */}
+    <MenuItem value="all">Tous les mois</MenuItem>
+  </Select>
+</FormControl>
+
+
                 <ResponsiveContainer width="100%" height={500}>
                 {loadingChart ? (
                   <Box display="flex" justifyContent="center" alignItems="center" height="100%">

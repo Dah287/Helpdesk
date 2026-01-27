@@ -437,7 +437,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         sx={{
           width: 0,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+          [`& .MuiDrawer-paper`]: { width: 180, boxSizing: 'border-box' },
         }}
       >
         <Toolbar /> {/* Espace pour la barre d'appbar */}

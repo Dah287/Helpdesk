@@ -3,11 +3,12 @@ import {
   Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, Button, TextField,
   Select, MenuItem, FormControl, InputLabel, Chip,Menu,
-  Typography, Box, AppBar, Toolbar, IconButton, Avatar
+  Typography, Box, AppBar, Toolbar, IconButton, Avatar,Tooltip
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import MenuIcon from '@mui/icons-material/Menu';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent'; // ✅ Nouvelle icône d’aide
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import api from '../services/api';
 import useAutoLogout from './useAutoLogout';
@@ -125,44 +126,75 @@ const navigate = useNavigate();
   return (
     <>
       {/* AppBar */}
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={() => setDrawerOpen(!drawerOpen)}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {/* {parsedUser.role === "NORMALE" && `Agent - ${parsedbureau_id.bureau}`} */}
-        </Typography>
+<AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+  <Toolbar>
+    <IconButton edge="start" color="inherit" onClick={() => setDrawerOpen(!drawerOpen)}>
+      <MenuIcon />
+    </IconButton>
+    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+      {/* {parsedUser?.role === "CHEF_BUR" && `Chef de bureau - ${parsedbureau_id?.bureau}`}
+      {parsedUser?.role === "CHEF_SI" && `Chef de service - ${parsedservice_id?.name}`}
+      {parsedUser?.role === "CHEF_DEP" && `Chef de département - ${parseddepartment_id?.name}`} */}
+    </Typography>
 
-          <IconButton color="inherit">
-            <NotificationsIcon />
-          </IconButton>
-            <IconButton onClick={handleAvatarClick} color="inherit">
-            <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-          >
-            <MenuItem disabled>
-              <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
-              Déconnexion
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+
+
+{/* 🆘 Aide & Support */}
+<Tooltip title="Aide & Support">
+  <IconButton
+    color="inherit"
+    onClick={() =>
+      window.open(
+        "https://drive.google.com/drive/folders/1POWOkSsoqXDKTLHVIzFmqEOyZ5nG65fu?usp=sharing",
+        "_blank"
+      )
+    }
+  >
+    <SupportAgentIcon />
+  </IconButton>
+</Tooltip>
+
+
+{/* 🔔 Notifications */}
+<Tooltip title="Notifications">
+  <IconButton color="inherit">
+    <NotificationsIcon />
+  </IconButton>
+</Tooltip>
+    <IconButton onClick={handleAvatarClick} color="inherit">
+  <Avatar sx={{ marginLeft: 2 }}>{displayUsername}</Avatar>
+</IconButton>
+<Menu
+  anchorEl={anchorEl}
+  open={open}
+  onClose={handleClose}
+  anchorOrigin={{
+    vertical: 'bottom',
+    horizontal: 'right',
+  }}
+  transformOrigin={{
+    vertical: 'top',
+    horizontal: 'right',
+  }}
+>
+  <MenuItem disabled>
+    <Typography variant="body1">{parsedUser?.nom} {parsedUser?.prenom}</Typography>
+  </MenuItem>
+    {/* ✅ Nouveau MenuItem pour changer le mot de passe */}
+  <MenuItem onClick={() => {
+      handleClose();               // fermer le menu
+      navigate('/change-password'); // rediriger vers la page changement de mot de passe
+  }}>
+    <Edit fontSize="small" sx={{ mr: 1 }} />
+    Changer mot de passe
+  </MenuItem>
+  <MenuItem onClick={handleLogout}>
+    <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+    Déconnexion
+  </MenuItem>
+</Menu>
+  </Toolbar>
+</AppBar>
 
       {/* Main content */}
       <Box sx={{ p: 3, width: 'calc(160% - 240px)', marginTop: '64px' }}>
@@ -250,9 +282,9 @@ const navigate = useNavigate();
                     <TableCell>{ticket.id}</TableCell>
                     <TableCell>{ticket.serialNumber|| '-'}</TableCell>
                     <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
-                    <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
-                    <TableCell>{ticket.department?.name || '-'}</TableCell>
-                    <TableCell>{ticket.service?.name || '-'}</TableCell>
+                    <TableCell>{ticket.createdBy.bureau?.bureau  || '-'}</TableCell>
+                    <TableCell>{ticket.createdBy.department?.name  || '-'}</TableCell>
+                    <TableCell>{ticket.createdBy.service?.name || '-'}</TableCell>
                     <TableCell>{ticket.equipmentType|| '-'} {ticket.brand && `(${ticket.brand})`}</TableCell>
                     <TableCell sx={{ maxWidth: 250 }}>
                       <Typography noWrap>{ticket.problemDescription}</Typography>

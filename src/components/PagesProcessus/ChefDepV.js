@@ -310,9 +310,9 @@ const navigate = useNavigate();
                   <TableCell>{ticket.id}</TableCell>
                   <TableCell>{ticket.serialNumber || '-'}</TableCell>
                   <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
-                  <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
-                  <TableCell>{ticket.department?.name || '-'}</TableCell>
-                  <TableCell>{ticket.service?.name || '-'}</TableCell>
+                    <TableCell>{ticket.createdBy.bureau?.bureau  || '-'}</TableCell>
+                    <TableCell>{ticket.createdBy.department?.name  || '-'}</TableCell>
+                    <TableCell>{ticket.createdBy.service?.name || '-'}</TableCell>
                   <TableCell>
                     {ticket.equipmentType || '-'} {ticket.brand && `(${ticket.brand})`}
                   </TableCell>

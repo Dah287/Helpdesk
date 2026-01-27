@@ -12,6 +12,8 @@ import {
   Dashboard as DashboardIcon,
   ListAlt as TicketsIcon,
   People as UsersIcon,
+  BarChart as BarChartIcon,
+   Receipt as ReceiptIcon,
   Settings as SettingsIcon,
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
@@ -29,7 +31,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import api from '../services/api';
 import LogoutIcon from '@mui/icons-material/Logout';
 import useAutoLogout from '../pages/useAutoLogout';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import FileDownloadIcon from '@mui/icons-material/FileDownload'; // 🔽 icône de téléchargement
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -59,42 +61,80 @@ const [serviceSearch, setServiceSearch] = useState('');
 const [selectedSolutions, setSelectedSolutions] = useState([]);
 
 useEffect(() => {
-  const formatted = formatAppliedSolution();
-  setSelectedTicket(prev => ({
-    ...prev,
-    appliedSolution: formatted
-  }));
+  if (selectedTicket) { // Vérifiez qu'un ticket est sélectionné
+    const formatted = formatAppliedSolution();
+    setSelectedTicket(prev => ({
+      ...prev,
+      appliedSolution: formatted
+    }));
+  }
 }, [selectedSolutions]);
-const solutions = [
-  "Fourniture et remplacement de Carte mère (PC Fixe)",
-  "Fourniture et remplacement de Carte mère (PC Portable)",
-  "Fourniture et remplacement de Ventilateur du CPU",
-  "Fourniture et remplacement de RAM 8Go (PC Fixe)",
-  "Fourniture et remplacement de RAM 8Go (PC Portable)",
-  "Fourniture et remplacement de Disque dur 1 To",
-  "Fourniture et remplacement de Bloc d'alimentation",
-  "Fourniture et remplacement de Ventilateur UC (PC Fixe)",
-  "Fourniture et remplacement de Clavier (PC Portable)",
-  "Fourniture et remplacement de Souris (PC Portable)",
-  "Fourniture et remplacement de l'Ecran",
-  "Installation complète du Système : Windows, Office, ...",
-  "Fourniture et remplacement de la carte mère",
-  "Fourniture et remplacement de Bloc d'alimentation",
-  "Fourniture et remplacement de l'acteur papier",
-  "Fourniture et remplacement de Roller d'entraînement papier",
-  "Fourniture et remplacement d'Eprouvette papier",
-  "Fourniture et remplacement de Kit de fusion (laser)",
-  "Fourniture et remplacement de Kit de fusion (Couleur)",
-  "Fourniture et remplacement de Kit de transfert",
-  "Fourniture et remplacement de Four (Couleur)",
-  "Fourniture et remplacement de Carte d'alimentation",
-  "Fourniture et remplacement de Ram",
-  "Fourniture et remplacement de Carte d'interface",
-  "Fourniture et remplacement de Roller d'entraînement papier",
-  "Fourniture et remplacement de Détecteur de papier",
-];
+// const solutions = [
+//   "Fourniture et remplacement de Carte mère (PC Fixe)",
+//   "Fourniture et remplacement de Carte mère (PC Portable)",
+//   "Fourniture et remplacement de Ventilateur du CPU",
+//   "Fourniture et remplacement de RAM 8Go (PC Fixe)",
+//   "Fourniture et remplacement de RAM 8Go (PC Portable)",
+//   "Fourniture et remplacement de Disque dur",
+//   "Fourniture et remplacement de Bloc d'alimentation",
+//   "Fourniture et remplacement de Ventilateur UC (PC Fixe)",
+//   "Fourniture et remplacement de Clavier (PC Portable)",
+//   "Fourniture et remplacement de Souris (PC Portable)",
+//   "Fourniture et remplacement de l'Ecran",
+//   "Installation complète du Système : Windows, Office, ...",
+//   "Fourniture et remplacement de la carte mère",
+//   "Fourniture et remplacement de Bloc d'alimentation",
+//   "Fourniture et remplacement de l'acteur papier",
+//   "Fourniture et remplacement de Roller d'entraînement papier",
+//   "Fourniture et remplacement d'Eprouvette papier",
+//   "Fourniture et remplacement de Kit de fusion (laser)",
+//   "Fourniture et remplacement de Kit de fusion (Couleur)",
+//   "Fourniture et remplacement de Kit de transfert",
+//   "Fourniture et remplacement de Four (Couleur)",
+//   "Fourniture et remplacement de Carte d'alimentation",
+//   "Fourniture et remplacement de Ram",
+//   "Fourniture et remplacement de Carte d'interface",
+//   "Fourniture et remplacement de Roller d'entraînement papier",
+//   "Fourniture et remplacement de Détecteur de papier",
+//   "Problème de l’onduleur",
+//   "Autres problèmes techniques"
+// ];
 
+const [solutions, setSolutions] = useState([]);
+const [loadingSolutions, setLoadingSolutions] = useState(false);
 
+const [searchTermSolution, setSearchTermSolution] = useState(''); // Pour filtrer la liste
+
+useEffect(() => {
+  const fetchSolutions = async () => {
+    try {
+      setLoadingSolutions(true);
+      const token = sessionStorage.getItem('token');
+      const res = await fetch('http://192.168.1.14:8083/api/admin/config/solutions', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      
+      // Nettoyage : Suppression des doublons et tri par ordre alphabétique
+      const uniqueSorted = [...new Set(data)].sort((a, b) => a.localeCompare(b));
+      setSolutions(uniqueSorted);
+    } catch (error) {
+      console.error("Erreur chargement solutions :", error);
+    } finally {
+      setLoadingSolutions(false);
+    }
+  };
+  fetchSolutions();
+}, []);
+
+// Filtrage dynamique de la liste affichée
+const filteredSolutions = solutions.filter(s => 
+  s.toLowerCase().includes(searchTermSolution.toLowerCase())
+);
+const location = useLocation();
+const currentPath = location.pathname;
+const isActive = (path) => currentPath === path;
 const toggleSolution = (solution) => {
   setSelectedSolutions((prev) =>
     prev.includes(solution)
@@ -111,11 +151,27 @@ const formatAppliedSolution = () => {
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [ticketToResolve, setTicketToResolve] = useState(null);
 
-  const handleResolveClick = (ticket) => {
-    setTicketToResolve(ticket);
-    setSelectedTicket(ticket);
-    setResolveDialogOpen(true);
-  };
+const handleResolveClick = (ticket) => {
+  setTicketToResolve(ticket);
+  setSelectedTicket(ticket);
+
+  // --- AJOUTEZ CECI ---
+  // On récupère la chaîne "appliedSolution" (ex: "- Solution A\n- Solution B")
+  // On la nettoie pour recréer le tableau de solutions sélectionnées
+  if (ticket.appliedSolution) {
+    const existingSolutions = ticket.appliedSolution
+      .split('\n')
+      .map(line => line.replace(/^- /, '').trim()) // Enlève le tiret et les espaces
+      .filter(line => line !== ""); // Enlève les lignes vides
+    
+    setSelectedSolutions(existingSolutions);
+  } else {
+    setSelectedSolutions([]); // Vide si aucune solution n'existe
+  }
+  // --------------------
+
+  setResolveDialogOpen(true);
+};
 
 
   const handleConfirmResolve = async () => {
@@ -286,19 +342,21 @@ const generateChartData = (tickets) => {
   
   
 
-  const loadTickets = async () => {
-    try {
-      const response = await api.getAllTicketsAdmin();
-      // Trier les tickets par date de création (du plus récent au plus ancien)
-      const sortedTickets = response.data.sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      setTickets(sortedTickets);
-      //g("data:", sortedTickets);
-    } catch (error) {
-      console.error("Error loading tickets:", error);
-    }
-  };
+const loadTickets = async () => {
+  try {
+    const response = await api.getAllTicketsAdmin();
+    const sortedTickets = response.data.sort((a, b) => {
+      const aIsSI = a.status === 'SI_SERVICE';
+      const bIsSI = b.status === 'SI_SERVICE';
+      if (aIsSI && !bIsSI) return -1;
+      if (!aIsSI && bIsSI) return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    setTickets(sortedTickets);
+  } catch (error) {
+    console.error("Error loading tickets:", error);
+  }
+};
 
   const handleAssign = async (ticketId) => {
     try {
@@ -339,7 +397,7 @@ const generateChartData = (tickets) => {
     }
   };
 
-  const filteredTickets = tickets
+const filteredTickets = tickets
   .filter(ticket => {
     const matchesSearch = 
       (searchTerm === '' || 
@@ -352,12 +410,15 @@ const generateChartData = (tickets) => {
        (ticket.service && ticket.service.name.toLowerCase().includes(serviceSearch.toLowerCase())));
     
     const matchesFilter = filter === 'all' || ticket.status === filter;
-    
     return matchesSearch && matchesFilter;
   })
-  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Tri supplémentaire pour les tickets filtrés
-
-
+  .sort((a, b) => {
+    const aIsSI = a.status === 'SI_SERVICE';
+    const bIsSI = b.status === 'SI_SERVICE';
+    if (aIsSI && !bIsSI) return -1;
+    if (!aIsSI && bIsSI) return 1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -433,12 +494,28 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       }
     };
 
+    const handleDeleteTicket = async (ticketId) => {
+  const confirm = window.confirm("Voulez-vous vraiment supprimer ce ticket ?");
+  if (!confirm) return;
+
+  try {
+    await api.deleteTicket(ticketId);
+    loadTickets();
+    alert("Ticket supprimé avec succès !");
+  } catch (error) {
+    console.error("Erreur lors de la suppression :", error);
+    alert("Erreur lors de la suppression du ticket");
+  }
+};
+
+
 
 
 
 
   return (
-    <Box sx={{ display: 'flex',width: 'calc(130% - 10px)',marginLeft : '100px' }}>
+<Box sx={{ display: 'flex', flexGrow: 1 ,marginLeft : '50px'}}>
+
       <CssBaseline />
       
       {/* Barre de navigation */}
@@ -508,39 +585,143 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
       </AppBar>
       
       {/* Menu latéral */}
-      <Drawer
-        variant="persistent"
-        open={drawerOpen}
-        sx={{
-          width: 0,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 190, boxSizing: 'border-box' },
-        }}
-      >
-        <Toolbar /> {/* Espace pour la barre d'appbar */}
+<Drawer
+  variant="persistent"
+  open={drawerOpen}
+  sx={{
+    width: 0,
+    flexShrink: 0,
+    [`& .MuiDrawer-paper`]: { width: 180, boxSizing: 'border-box' },
+  }}
+>
+  <Toolbar /> {/* Espace pour la barre d'appbar */}
+  
+  {/* 🔹 Nom de l'application + version */}
+  <Box
+    sx={{
+      px: 2,
+      py: 1.5,
+      backgroundColor: '#1976d2', // bleu primaire (selon votre thème)
+      color: 'white',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: '0.9rem',
+      borderBottom: '1px solid rgba(255,255,255,0.2)',
+    }}
+  >
+    <Typography variant="body2" noWrap>
+      IT GTickets
+    </Typography>
+    <Typography variant="caption" sx={{ opacity: 0.9 }}>
+      v2.1.7
+    </Typography>
+  </Box>
         <Box sx={{ overflow: 'auto' }}>
-        <List>
+<List>
+  <ListItem
+    button
+    component="a"
+    href="/admin/Dashboard"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/Dashboard') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/Dashboard') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/Dashboard') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <BarChartIcon sx={{ color: isActive('/admin/Dashboard') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Dashboard" />
+  </ListItem>
 
-<ListItem button component="a" href="/admin/Dashboard" sx={{ color: 'inherit', textDecoration: 'none' }}>
-<ListItemIcon><UsersIcon /></ListItemIcon>
-<ListItemText primary="Dashboard" />
-</ListItem>
-<ListItem button component="a" href="/admin/Tickets" sx={{ color: 'inherit', textDecoration: 'none' }}>
-  <ListItemIcon><TicketsIcon /></ListItemIcon>
-  <ListItemText primary="Tickets" />
-</ListItem>
-<ListItem button component="a" href="/admin/user" sx={{ color: 'inherit', textDecoration: 'none' }}>
-<ListItemIcon><UsersIcon /></ListItemIcon>
-<ListItemText primary="Utilisateurs" />
-</ListItem>
+  <ListItem
+    button
+    component="a"
+    href="/admin/Tickets"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/Tickets') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/Tickets') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/Tickets') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <TicketsIcon sx={{ color: isActive('/admin/Tickets') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Tickets" />
+  </ListItem>
 
-<ListItem button>
-  <ListItemIcon><SettingsIcon /></ListItemIcon>
-  <ListItemText primary="Paramètres" />
-</ListItem>
+  <ListItem
+    button
+    component="a"
+    href="/admin/user"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/user') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/user') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/user') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <UsersIcon sx={{ color: isActive('/admin/user') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Utilisateurs" />
+  </ListItem>
+
+  <ListItem
+    button
+    component="a"
+    href="/admin/vision-globale"
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/vision-globale') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/vision-globale') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/vision-globale') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+  >
+    <ListItemIcon>
+      <ReceiptIcon sx={{ color: isActive('/admin/vision-globale') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Vision globale" />
+  </ListItem>
+
+  <ListItem
+    button
+    sx={{
+      color: 'inherit',
+      textDecoration: 'none',
+      backgroundColor: isActive('/admin/parametres') ? '#1976d2' : 'transparent',
+      color: isActive('/admin/parametres') ? 'white' : 'inherit',
+      '&:hover': {
+        backgroundColor: isActive('/admin/parametres') ? '#1565c0' : '#eeeeee',
+      },
+    }}
+    onClick={() => navigate('/admin/parametres')}
+  >
+    <ListItemIcon>
+      <SettingsIcon sx={{ color: isActive('/admin/parametres') ? 'white' : 'inherit' }} />
+    </ListItemIcon>
+    <ListItemText primary="Paramètres" />
+  </ListItem>
 </List>
         </Box>
       </Drawer>
+
+
+
 
       {/* Contenu principal */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}>
@@ -664,7 +845,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
   </Button>
 </Box>
 
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper}sx={{ width: '100%', overflowX: 'auto' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -672,8 +853,8 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
                     <TableCell>Numéro Série</TableCell>
                     <TableCell>Créé par</TableCell>
                     <TableCell>Bureau</TableCell>
-                    <TableCell>Service</TableCell>
                     <TableCell>Département</TableCell>
+                    <TableCell >Service</TableCell>
                     <TableCell>Type Demande</TableCell>
                     <TableCell>Problème</TableCell>
                     <TableCell>Priorité</TableCell>
@@ -688,22 +869,36 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         {currentTickets.map((ticket) => (
           <TableRow key={ticket.id} hover>
             <TableCell>{ticket.id}</TableCell>
-            <TableCell>
+            <TableCell sx={{ maxWidth: 160 }}>
               <Typography noWrap>
               {ticket.serialNumber|| '-'}
               </Typography>
               </TableCell>
-              <TableCell>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
-            <TableCell>{ticket.bureau?.bureau || '-'}</TableCell>
-            <TableCell>{ticket.service?.name || '-'}</TableCell>
-            <TableCell>{ticket.department?.name}</TableCell>
+              <TableCell  sx={{ maxWidth: 166 }}>{ticket.createdBy?.nom} {ticket.createdBy?.prenom}</TableCell>
+<TableCell sx={{ maxWidth: 140 }}>
+  {(!ticket.createdBy.bureau?.bureau || ticket.createdBy.bureau?.bureau === "NAN") 
+    ? "Aucun" 
+    : ticket.createdBy.bureau.bureau}
+</TableCell>
+
+<TableCell>
+  {(!ticket.createdBy.department?.name || ticket.createdBy.department?.name === "NAN") 
+    ? "Aucun" 
+    : ticket.createdBy.department.name}
+</TableCell>
+
+<TableCell sx={{ maxWidth: 150 }}>
+  {(!ticket.createdBy.service?.name || ticket.createdBy.service?.name === "NAN") 
+    ? "Aucun" 
+    : ticket.createdBy.service.name}
+</TableCell>
             <TableCell>{ticket.typeDemande}</TableCell>
-            <TableCell sx={{ maxWidth: 200 }}>
+            <TableCell sx={{ maxWidth: 190 }}>
               <Typography noWrap>
                 {ticket.problemDescription}
               </Typography>
             </TableCell>
-            <TableCell>
+            <TableCell sx={{ maxWidth: 120 }}>
               <Chip 
                 label={ticket.priority} 
                 color={
@@ -736,10 +931,26 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
             <TableCell>
               {new Date(ticket.createdAt).toLocaleDateString()}
             </TableCell>
-            <TableCell>
-  <Box sx={{ display: 'flex', gap: 1 }}>
+<TableCell sx={{ width: '10px', whiteSpace: 'nowrap' }}>
+  <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-start' }}>
+
+
+    {/* 🔴 Supprimer Ticket */}
+    <Tooltip title="Supprimer">
+      <IconButton
+      size="small"
+        onClick={() => handleDeleteTicket(ticket.id)}
+        color="error"
+      >
+        <Delete />
+      </IconButton>
+    </Tooltip>
+
+
     <Tooltip title="Voir détails">
-      <IconButton onClick={() => handleViewDetails(ticket)}>
+      <IconButton 
+      size="small"
+      onClick={() => handleViewDetails(ticket)}>
         <ViewIcon color="primary" />
       </IconButton>
     </Tooltip>
@@ -748,6 +959,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     <Tooltip title="Mettre en cours">
       <span> {/* Ajout d'un wrapper span pour le tooltip sur élément désactivé */}
         <IconButton 
+        size="small"
           onClick={() => handleUpdateStatus(ticket.id, 'EN_COURS')} 
           color="warning"
           disabled={ticket.status === "RESOLU"} // Adaptez la valeur selon votre enum
@@ -761,6 +973,7 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
     <Tooltip title="Transmettre à la société de maintenance">
       <span>
         <IconButton 
+        size="small"
           onClick={() => handleUpdateStatus(ticket.id, 'TRANS_SM')}
           color="info"
           disabled={ticket.status === "RESOLU"} // Adaptez la valeur selon votre enum
@@ -772,13 +985,17 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
 
     {/* Bouton Résoudre */}
     <Tooltip title="Résoudre">
-      <IconButton onClick={() => handleResolveClick(ticket)}>
+      <IconButton 
+      size="small"
+      onClick={() => handleResolveClick(ticket)}>
         <ResolveIcon color="success" />
       </IconButton>
     </Tooltip>
 
     <Tooltip title="Télécharger le rapport">
-      <IconButton onClick={() => handleDownloadReport(ticket.id)}
+      <IconButton 
+      size="small"
+      onClick={() => handleDownloadReport(ticket.id)}
         disabled={ticket.status !== "RESOLU"}>
         <FileDownloadIcon color="secondary" />
       </IconButton>
@@ -874,9 +1091,9 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
         <Grid container spacing={2}>
           {[
             { label: "Numéro de série", value: selectedTicket.serialNumber },
-            { label: "Bureau", value: selectedTicket.bureau?.bureau },
-            { label: "Département", value: selectedTicket.department?.name },
-            { label: "Service", value: selectedTicket.service?.name },
+  { label: "Bureau", value: selectedTicket?.createdBy?.bureau?.bureau || '-' },
+  { label: "Département", value: selectedTicket?.createdBy?.department?.name || '-' },
+  { label: "Service", value: selectedTicket?.createdBy?.service?.name || '-' },
             {
               label: "Type d'équipement",
               value: `${selectedTicket.equipmentType || ""}${
@@ -1068,127 +1285,99 @@ const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
   maxWidth="md"
   fullWidth
   PaperProps={{
-    sx: {
-      borderRadius: 4,
-      p: 1,
-      bgcolor: '#fefefe',
-      boxShadow: '0px 10px 25px rgba(0,0,0,0.2)'
-    }
+    sx: { borderRadius: 4, p: 1, bgcolor: '#fefefe' }
   }}
 >
-  <DialogTitle
-    sx={{
-      fontWeight: 600,
-      fontSize: '1.5rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      px: 3,
-      pt: 3
-    }}
-  >
+  <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
     Résolution du Ticket #{ticketToResolve?.id}
-    <IconButton onClick={() => setResolveDialogOpen(false)}>
-      <CloseIcon />
-    </IconButton>
+    <IconButton onClick={() => setResolveDialogOpen(false)}><CloseIcon /></IconButton>
   </DialogTitle>
 
-  <DialogContent dividers sx={{ px: 3, py: 2 }}>
+  <DialogContent dividers sx={{ px: 3 }}>
+    <Box sx={{ mb: 3 }}>
+      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1, fontWeight: 700 }}>
+        <ReportProblemOutlinedIcon sx={{ mr: 1, color: 'warning.main' }} />
+        Problème trouvé
+      </Typography>
+      <TextField
+        required multiline fullWidth rows={2}
+        variant="outlined"
+        placeholder="Décrivez le problème réel identifié..."
+        value={selectedTicket?.foundProblem || ''}
+        onChange={(e) => setSelectedTicket(prev => ({ ...prev, foundProblem: e.target.value }))}
+        error={!selectedTicket?.foundProblem}
+      />
+    </Box>
+
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
-        Informations de résolution
+      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1, fontWeight: 700 }}>
+        <CheckCircleOutlineIcon sx={{ mr: 1, color: 'success.main' }} />
+        Sélectionner la/les solution(s) effectuée(s)
       </Typography>
 
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <ReportProblemOutlinedIcon sx={{ mr: 1, color: 'warning.main' }} />
-          Problème trouvé
-        </Typography>
-        <TextField
-          required
-          multiline
-          fullWidth
-          rows={3}
-          variant="outlined"
-          value={selectedTicket?.foundProblem || ''}
-          onChange={(e) =>
-            setSelectedTicket((prev) => ({
-              ...prev,
-              foundProblem: e.target.value,
-            }))
-          }
-          error={!selectedTicket?.foundProblem}
-          helperText={
-            !selectedTicket?.foundProblem ? "Ce champ est obligatoire." : ""
-          }
-        />
+      {/* Barre de recherche interne pour les solutions */}
+      <TextField
+        fullWidth
+        size="small"
+        placeholder="Rechercher une solution (ex: Carte mère, Windows...)"
+        sx={{ mb: 1 }}
+        value={searchTermSolution}
+        onChange={(e) => setSearchTermSolution(e.target.value)}
+      />
+
+      <Box sx={{ 
+        maxHeight: 250, 
+        overflowY: 'auto', 
+        border: '1px solid #e0e0e0', 
+        borderRadius: 2, 
+        p: 2,
+        bgcolor: '#f9f9f9'
+      }}>
+        {loadingSolutions ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><CircularProgress size={30} /></Box>
+        ) : (
+          <Grid container spacing={1}>
+            {filteredSolutions.map((solution) => (
+              <Grid item xs={12} sm={6} key={solution}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={selectedSolutions.includes(solution)} // <--- TRÈS IMPORTANT
+                      onChange={() => toggleSolution(solution)}
+                    />
+                  }
+                  label={<Typography variant="body2">{solution}</Typography>}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Box>
 
-<Box sx={{ mb: 1 }}>
-  <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-    <CheckCircleOutlineIcon sx={{ mr: 1, color: 'success.main' }} />
-    Solution effectuée
-  </Typography>
-
-  {/* Liste des solutions possibles */}
-  <Box sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 1 }}>
-    {solutions.map((solution, index) => (
-      <FormControlLabel
-        key={index}
-        control={
-          <Checkbox
-            checked={selectedSolutions.includes(solution)}
-            onChange={() => toggleSolution(solution)}
-            color="primary"
-          />
-        }
-        label={solution}
-        sx={{ display: 'flex', alignItems: 'flex-start', py: 0.5 }}
-      />
-    ))}
-  </Box>
-
-  {/* Affichage du résultat (champ masqué) */}
-  <TextField
-    required
-    multiline
-    fullWidth
-    rows={3}
-    variant="outlined"
-    value={formatAppliedSolution()}
-    disabled
-    InputProps={{
-      sx: { fontSize: 14 },
-    }}
-    error={!formatAppliedSolution()}
-    helperText={
-      !formatAppliedSolution() ? "Veuillez sélectionner au moins une solution." : ""
-    }
-  />
-</Box>
+      {/* Aperçu du résultat final */}
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="caption" color="textSecondary">Aperçu du rapport :</Typography>
+        <TextField
+          fullWidth multiline rows={3} disabled
+          variant="filled"
+          value={formatAppliedSolution()}
+          InputProps={{ sx: { fontSize: 13, lineHeight: 1.4, bgcolor: '#f0f0f0' } }}
+          helperText={!selectedSolutions.length ? "Veuillez cocher au moins une solution." : ""}
+          error={!selectedSolutions.length}
+        />
+      </Box>
     </Box>
   </DialogContent>
 
-  <Divider />
-
   <DialogActions sx={{ px: 3, py: 2 }}>
-    <Button
-      onClick={() => setResolveDialogOpen(false)}
-      variant="outlined"
-      color="inherit"
-      sx={{ borderRadius: 3, px: 3 }}
-    >
-      Annuler
-    </Button>
+    <Button onClick={() => setResolveDialogOpen(false)} color="inherit">Annuler</Button>
     <Button
       variant="contained"
       color="success"
-      onClick={() => {
-if (selectedTicket?.foundProblem && selectedTicket?.appliedSolution) {
-  handleConfirmResolve();
-}
-      }}
-      sx={{ borderRadius: 3, px: 3 }}
+      disabled={!selectedTicket?.foundProblem || selectedSolutions.length === 0}
+      onClick={handleConfirmResolve}
+      sx={{ borderRadius: 2, px: 4 }}
     >
       Confirmer la résolution
     </Button>

@@ -62,7 +62,7 @@ const TicketFormPage = () => {
   
 console.log("parsedUser?.department_id",parsedUser?.department_id)
 console.log("parsedUser?.department_id",parsedUser?.id)
-  const equipmentTypes = ['Ordinateur portable', 'Ordinateur de bureau', 'Imprimante', 'Scanner'];
+  const equipmentTypes = ['Ordinateur portable', 'Ordinateur de bureau', 'Imprimante', 'Scanner','Onduleur'];
   const brands = ['Dell', 'HP', 'Lenovo', 'Epson', 'Canon', 'Autre'];
 
   useEffect(() => {

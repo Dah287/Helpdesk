@@ -20,6 +20,7 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
       //g("Token utilisé2 :", config.headers.Authorization); // 👈 Ajout du log
     }
+      //  console.log("URL complète utilisée par Axios:", config.baseURL + config.url); // 👈 Log
     return config;
   },
   (error) => Promise.reject(error)
@@ -43,12 +44,14 @@ const api = {
   // CRUD Operations
   getAllTickets: () => axiosInstance.get('/tickets'),
   getAllTicketsAdmin: () => axiosInstance.get('/tickets/by-status'),
+  getAllTicketsAdminSuper: () => axiosInstance.get('/tickets/by-status-super'),
   getByUserName: (username) => axiosInstance.get(`/tickets/assigned-to/${username}`),
   getTicket: (id) => axiosInstance.get(`/tickets/${id}`),
   createTicket: (ticket) => axiosInstance.post('/tickets', ticket),
   updateTicket: (id, ticket) => axiosInstance.put(`/tickets/${id}`, ticket),
   deleteTicket: (id) => axiosInstance.delete(`/tickets/${id}`),
   updateTicketStatus: (id, newStatus) => axiosInstance.put(`/tickets/updateTicketStatus/${id}`, { status: newStatus }),
+  updateTicketStatusSuper: (id, newStatus) => axiosInstance.put(`/tickets/updateTicketStatusSuper/${id}`, { status: newStatus }),
 
   // Tickets par service/département
   getAllTicketsService: (id, userId) => axiosInstance.get(`/tickets/tickets-chef-service-validation/${id}/${userId}`),
@@ -84,6 +87,36 @@ getTicketsByStatus: (status,username) => axiosInstance.get(`/tickets/status/${st
   getAllBureaux: () => axiosInstance.get('/utilisateurs/bureaux'),
   getAllServices: () => axiosInstance.get('/utilisateurs/services'),
   getAllDepartments: () => axiosInstance.get('/utilisateurs/departments'),
+
+  // api.js
+ // getSystemConfig: () => axios.get('/api/admin/config'),
+ updateSystemConfig : (data) => axios.put('/api/admin/config', data),
+ resetSystemConfig : () => axios.post('/api/admin/config/reset'),
+deleteDemandType : (name) => axios.delete(`/admin/config/demand-types/${encodeURIComponent(name)}`),
+
+
+ addDemandType : (name) => axios.post('/api/admin/config/demand-types', { name }),
+ // addSolution: (payload) => axios.post('/api/admin/config/add-solutions', payload),
+ //deleteSolution : (text) => axios.delete(`/api/admin/config/solutions/${encodeURIComponent(text)}`),
+
+ //
+
+// Récupérer la liste des libellés des solutions actives
+  getSolutions: () => axiosInstance.get('/admin/config/solutions'),
+
+  // Ajouter une nouvelle solution
+  // Le payload doit être { text: "ma solution" }
+  addSolution: (payload) => axiosInstance.post('/admin/config/add-solutions', payload),
+
+  // Désactiver une solution par son libellé
+  deleteSolution: (libelle) => axiosInstance.delete(`/admin/config/solutions/${libelle}`),
+
+  // Récupérer la config globale (Types de demande, aide, etc.)
+  // Note : Assurez-vous que ce endpoint existe dans votre Controller Java
+  getSystemConfig: () => axiosInstance.get('/admin/config/system'),
+  
+  // Mettre à jour la config globale
+  //updateSystemConfig: (config) => axiosInstance.put('/admin/config/system', config),
 };
 
 export default api;
