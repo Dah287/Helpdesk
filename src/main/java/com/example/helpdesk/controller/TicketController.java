@@ -37,15 +37,39 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAllTickets());
     }
 
+
+
+    @GetMapping("/by-status-super")
+    public ResponseEntity<List<Ticket>> getAllTicketsSuper() {
+        return ResponseEntity.ok(ticketService.getAllTicketsSuper());
+    }
     @PutMapping("/updateTicketStatus/{id}")
     public ResponseEntity<?> updateTicketStatus(@PathVariable Long id, @RequestBody Ticket ticketRequest) {
         try {
+            // Appelle le service pour mettre à jour le ticket
             Ticket updatedTicket = ticketService.updateTicketStatus(id, ticketRequest);
+
+            // Retourne le ticket mis à jour
             return ResponseEntity.ok(updatedTicket);
         } catch (Exception e) {
             return ResponseEntity.status(404).body("Ticket not found");
         }
     }
+
+
+    @PutMapping("/updateTicketStatusSuper/{id}")
+    public ResponseEntity<?> updateTicketStatusSuper(@PathVariable Long id, @RequestBody Ticket ticketRequest) {
+        try {
+            // Appelle le service pour mettre à jour le ticket
+            Ticket updatedTicket = ticketService.updateTicketStatus(id, ticketRequest);
+
+            // Retourne le ticket mis à jour
+            return ResponseEntity.ok(updatedTicket);
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body("Ticket not found");
+        }
+    }
+
 
     // Récupérer un ticket par ID
     @GetMapping("/{id}")

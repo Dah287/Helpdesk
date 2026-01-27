@@ -57,6 +57,9 @@ public class Ticket {
     @Column(name = "dateResoluSI")
     private Date dateResoluSI;
 
+    @Column(name = "dateDateTranSM")
+    private Date dateTranSM;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Date updatedAt;
@@ -234,6 +237,15 @@ public class Ticket {
     public void setDateResoluSI(Date dateResoluSI) {
         this.dateResoluSI = dateResoluSI;
     }
+
+    public Date getDateTranSM() {
+        return dateTranSM;
+    }
+
+    public void setDateTranSM(Date dateTranSM) {
+        this.dateTranSM = dateTranSM;
+    }
+
 
     // Getters et setters
     public String getFoundProblem() {

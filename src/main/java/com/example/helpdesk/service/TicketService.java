@@ -27,6 +27,7 @@ import com.itextpdf.layout.element.Paragraph;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -72,11 +73,20 @@ public class TicketService {
             Ticket ticket = optionalTicket.get();
 
             ticket.setStatus(newStatus.getStatus());
+
+            // ✅ Si le statut est TRANS_SM, on met dateTranSM à maintenant
+            if (TicketStatus.TRANS_SM.equals(newStatus.getStatus())) {
+                ticket.setDateTranSM(new Date());
+            }
+
             return ticketRepository.save(ticket);
         } else {
             throw new Exception("Ticket not found");
         }
     }
+
+
+
 
     // update dateValidationService
     public Ticket updatedateValidationService(Long id, Date newStatus) throws Exception {
@@ -137,6 +147,10 @@ public class TicketService {
 
     // Récupérer tous les tickets
     public List<Ticket> getAllTickets() {
+        return ticketRepository.findAll();
+    }
+    // Récupérer tous les tickets
+    public List<Ticket> getAllTicketsSuper() {
         return ticketRepository.findAll();
     }
 
@@ -497,38 +511,79 @@ public class TicketService {
             throw new RuntimeException("Erreur lors de la génération du rapport PDF", e);
         }
     }
+/// /////////////////////////////////////////////////////////
+private void generateHeader(Document document, Ticket ticket) throws IOException {
+    // Création d'une table à 3 colonnes avec des largeurs adaptées (25%, 50%, 25%)
+    Table headerTable = new Table(UnitValue.createPercentArray(new float[]{25, 50, 25}))
+            .useAllAvailableWidth()
+            .setMarginBottom(10);
 
-    private void generateHeader(Document document, Ticket ticket) throws IOException  {
-        // Table pour les logos
-        Table headerTable = new Table(UnitValue.createPercentArray(new float[]{30, 40, 30}))
-                .useAllAvailableWidth();
+    // --- COLONNE 1 : Texte ORMVAD + DPF / SI (Gauche) ---
+    Cell leftCell = new Cell()
+            .setBorder(Border.NO_BORDER)
+            .setTextAlignment(TextAlignment.LEFT)
+            .setVerticalAlignment(VerticalAlignment.MIDDLE);
 
-        // Logo gauche
-        addLogoToHeader(headerTable, "images/logo_left.png", 70, 70, HorizontalAlignment.LEFT);
+    leftCell.add(new Paragraph("ORMVAD")
+            .setBold()
+            .setFontSize(10)
+            .setFixedLeading(12)); // Espace entre les lignes
+    leftCell.add(new Paragraph("DPF / SI")
+            .setFontSize(10)
+            .setFixedLeading(12));
 
-        // Titre central
-        Cell titleCell = new Cell()
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setVerticalAlignment(VerticalAlignment.MIDDLE);
+    headerTable.addCell(leftCell);
 
-        titleCell.add(new Paragraph("OFFICE RÉGIONAL DE MISE EN VALEUR AGRICOLE DES DOUKKALA")
-                .setFontSize(12).setBold().setTextAlignment(TextAlignment.CENTER));
+    // --- COLONNE 2 : Titre de l'Office + Type de Rapport (Centre) ---
+    Cell centerCell = new Cell()
+            .setBorder(Border.NO_BORDER)
+            .setTextAlignment(TextAlignment.CENTER)
+            .setVerticalAlignment(VerticalAlignment.MIDDLE);
 
-        String reportTitle = isMaintenanceTicket(ticket) ? "RAPPORT DE RÉPARATION" : "RAPPORT D'INTERVENTION";
-        titleCell.add(new Paragraph(reportTitle)
-                .setFontSize(16).setBold().setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(10));
+    centerCell.add(new Paragraph("OFFICE RÉGIONAL DE MISE EN VALEUR AGRICOLE DES DOUKKALA")
+            .setFontSize(10)
+            .setBold());
 
-        headerTable.addCell(titleCell);
+    // Titre dynamique selon le type de ticket
+    String reportTitle = isMaintenanceTicket(ticket) ? "RAPPORT DE RÉPARATION" : "RAPPORT D'INTERVENTION";
+    centerCell.add(new Paragraph(reportTitle)
+            .setFontSize(14)
+            .setBold()
+            .setUnderline() // Optionnel : souligne le titre principal
+            .setMarginTop(5));
 
-        // Logo droit
-        addLogoToHeader(headerTable, "images/logo_right.jpg", 110, 110, HorizontalAlignment.RIGHT);
+    headerTable.addCell(centerCell);
 
-        document.add(headerTable);
-        document.add(new Paragraph("\n"));
+    // --- COLONNE 3 : Logo ORMVAD (Droite) ---
+    // On réutilise une version simplifiée de votre logique de logo
+    Cell logoCell = new Cell()
+            .setBorder(Border.NO_BORDER)
+            .setVerticalAlignment(VerticalAlignment.MIDDLE)
+            .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+
+    try {
+        String logoPath = "images/logo_ormvad.png"; // Assurez-vous que le chemin est correct
+        InputStream logoStream = getClass().getClassLoader().getResourceAsStream(logoPath);
+        if (logoStream != null) {
+            ImageData logoData = ImageDataFactory.create(IOUtils.toByteArray(logoStream));
+            Image logo = new Image(logoData).scaleToFit(70, 70); // Ajustez la taille selon vos besoins
+            logoCell.add(logo.setHorizontalAlignment(HorizontalAlignment.RIGHT));
+        }
+    } catch (Exception e) {
+        // En cas d'erreur logo, on laisse la cellule vide
+        System.err.println("Logo introuvable : " + e.getMessage());
     }
 
+    headerTable.addCell(logoCell);
+
+
+    // Ajouter la table complète au document
+    document.add(headerTable);
+    document.add(new Paragraph("\n").setFontSize(10));
+ //   document.add(new Paragraph("\n").setFontSize(10));
+    // Une ligne de séparation élégante (optionnel)
+    // document.add(new LineSeparator(new SolidLine(1f)).setMarginBottom(10));
+}
     private void addLogoToHeader(Table table, String logoPath, int width, int height, HorizontalAlignment alignment) {
         try {
             InputStream logoStream = getClass().getClassLoader().getResourceAsStream(logoPath);
@@ -539,7 +594,9 @@ public class TicketService {
                 Cell logoCell = new Cell()
                         .setBorder(Border.NO_BORDER)
                         .setVerticalAlignment(VerticalAlignment.TOP)
-                        .setHorizontalAlignment(alignment);
+                        .setHorizontalAlignment(alignment)
+                        .setPadding(0)
+                        .setMargin(0); // Important pour coller au bord
                 logoCell.add(logo);
                 table.addCell(logoCell);
             } else {
@@ -549,6 +606,7 @@ public class TicketService {
             table.addCell(new Cell().setBorder(Border.NO_BORDER));
         }
     }
+
 
     private void generateInformationTable(Document document, Ticket ticket) {
         // Table principale avec 2 colonnes : Libellé et Valeur
@@ -578,7 +636,7 @@ public class TicketService {
         // === SECTION INFORMATIONS GÉNÉRALES ===
         addSectionHeader(infoTable, "INFORMATIONS GÉNÉRALES", sectionHeaderStyle);
 
-        addInfoRow(infoTable, "Numéro de ticket", String.valueOf(ticket.getId()), labelStyle, valueStyle);
+       // addInfoRow(infoTable, "Numéro de ticket", String.valueOf(ticket.getId()), labelStyle, valueStyle);
         addInfoRow(infoTable, "Type de demande", String.valueOf(ticket.getTypeDemande()), labelStyle, valueStyle);
         addInfoRow(infoTable, "Priorité", String.valueOf(ticket.getPriority()), labelStyle, valueStyle);
         //addInfoRow(infoTable, "Statut", String.valueOf(ticket.getStatus()), labelStyle, valueStyle);
@@ -603,13 +661,13 @@ public class TicketService {
         addSectionHeader(infoTable, "LOCALISATION", sectionHeaderStyle);
 
         addInfoRow(infoTable, "Bureau",
-                ticket.getBureau() != null  && !"NAN".equals(ticket.getBureau().getBureau()) ? ticket.getBureau().getBureau() : " - ",
+                ticket.getBureau() != null  && !"NAN".equals(ticket.getCreatedBy().getBureau().getBureau()) ? ticket.getBureau().getBureau() : " - ",
                 labelStyle, valueStyle);
         addInfoRow(infoTable, "Service",
-                ticket.getService() != null && !"NAN".equals(ticket.getService().getName())  ? ticket.getService().getName() : " - ",
+                ticket.getService() != null && !"NAN".equals(ticket.getCreatedBy().getService().getName())  ? ticket.getService().getName() : " - ",
                 labelStyle, valueStyle);
         addInfoRow(infoTable, "Département",
-                ticket.getDepartment() != null ? ticket.getDepartment().getName() : "Non renseigné",
+                ticket.getDepartment() != null ? ticket.getCreatedBy().getDepartment().getName() : "Non renseigné",
                 labelStyle, valueStyle);
 
         // === SECTION CRÉATION ===
@@ -677,29 +735,45 @@ public class TicketService {
     }
 
     private void generateFooter(Document document) {
-        // Espace avant le footer
+        // Espace avant le footer pour ne pas coller au tableau de données
         document.add(new Paragraph("\n\n"));
 
-        // Table pour le footer
+        // Table pour le footer (50% gauche pour l'app, 50% droite pour la signature)
         Table footerTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
                 .useAllAvailableWidth();
 
-        // Cellule vide à gauche
-        footerTable.addCell(new Cell().setBorder(Border.NO_BORDER));
+        // --- Cellule GAUCHE : Mention de l'application ---
+        Cell appCell = new Cell()
+                .setBorder(Border.NO_BORDER)
+                .setVerticalAlignment(VerticalAlignment.BOTTOM) // Aligné en bas
+                .setTextAlignment(TextAlignment.LEFT);
 
-        // Cellule signature et date à droite
+        appCell.add(new Paragraph("Extrait de l'application Gtickets")
+                .setItalic()
+                .setFontSize(8)
+                .setFontColor(ColorConstants.GRAY)); // Discret en gris
+
+        footerTable.addCell(appCell);
+
+        // --- Cellule DROITE : Signature et date ---
         Cell signatureCell = new Cell()
                 .setBorder(Border.NO_BORDER)
                 .setTextAlignment(TextAlignment.RIGHT);
 
-        signatureCell.add(new Paragraph("Signature : ..........................................."));
-        signatureCell.add(new Paragraph("\n"));
-        signatureCell.add(new Paragraph("Date : " + java.time.LocalDate.now()));
+        signatureCell.add(new Paragraph("Signature : ...........................................")
+                .setFontSize(10));
+
+        // Ajout d'un petit espacement sous la signature
+        signatureCell.add(new Paragraph("\n").setFontSize(5));
+
+        signatureCell.add(new Paragraph("Date : " + java.time.LocalDate.now())
+                .setFontSize(10));
 
         footerTable.addCell(signatureCell);
+
+        // Ajouter la table finale au document
         document.add(footerTable);
     }
-
     private boolean isMaintenanceTicket(Ticket ticket) {
         return ticket.getTypeDemande() != null &&
                 "maintenance".equalsIgnoreCase(String.valueOf(ticket.getTypeDemande()));

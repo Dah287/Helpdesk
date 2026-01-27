@@ -56,6 +56,18 @@ public class User {
     @JoinColumn(name = "service_id", nullable = false)
     private Service service;
 
+
+    // ✅ Ajoute ce champ
+    private boolean firstLogin = true;
+
+    // getters et setters
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
+    }
     // Getters et Setters manuels (si nécessaires)
 
     public Long getId() {
